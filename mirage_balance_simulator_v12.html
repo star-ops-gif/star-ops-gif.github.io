@@ -1,0 +1,553 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101b25"><meta name="apple-mobile-web-app-capable" content="yes"><title>미라쥬 2종 소형 균형 시뮬레이터 V12</title><style>
+:root{color-scheme:dark;--bg:#101b25;--panel:#182b39;--panel2:#223b4b;--line:#476275;--ink:#f2f7fb;--sub:#bbccd8;--mint:#b9ef78;--gold:#f1cf86;--dock-h:188px;--scene-top:142px}
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:14px/1.42 -apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR',sans-serif}
+button,select,input{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--mint);outline-offset:2px}button:active{filter:brightness(1.11)}
+#app{position:relative;width:100%;height:100%;height:100dvh;overflow:hidden}#sim{position:absolute;top:var(--scene-top);bottom:var(--dock-h);left:0;width:100%;height:calc(100% - var(--scene-top) - var(--dock-h));touch-action:none;background:#303d43}
+#hud{position:absolute;top:calc(env(safe-area-inset-top) + 7px);left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}#hud h1{font-size:17px;letter-spacing:-.3px;margin:0}.eyebrow{font-size:9px;color:var(--mint);font-weight:900;letter-spacing:.14em}#status{font-size:10px;color:var(--sub);line-height:1.3;max-width:185px}#speed{font-size:29px;font-weight:950;line-height:1;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}#speed small{font-size:11px;font-weight:700;color:var(--sub)}#timer{text-align:right;color:var(--sub);font-size:10px;white-space:nowrap}
+#progressTrack{position:absolute;top:calc(env(safe-area-inset-top) + 82px);left:12px;right:12px;height:3px;border-radius:7px;background:#ffffff24;overflow:hidden}#progress{height:100%;background:var(--mint);width:0}
+#tools{position:absolute;z-index:3;top:calc(env(safe-area-inset-top) + 94px);left:8px;right:8px;display:grid;grid-template-columns:52px 52px repeat(5,minmax(0,1fr));gap:4px;height:34px}#tools .ztools{display:contents}#tools button{border:1px solid #486377;border-radius:10px;background:#1c3140;color:#eff7fb;font-weight:850;font-size:11px;padding:0 2px;min-width:0}#tools #demoBtn{border-color:#87b86d;background:#26452e;color:#ddffcb}#tools #demoBtn.on{background:#b9ef78;color:#17301d}#app.demoing #controls{opacity:.58;filter:saturate(.55);pointer-events:none}#app.demoing #hintbar{color:#e5ffd6;border-color:#79a865;background:#1c3526}
+#tag,#hintbar{display:none}
+#controls{position:absolute;z-index:4;left:0;right:0;bottom:0;max-height:58dvh;overflow:auto;overscroll-behavior:contain;background:#101d29;border-top:1px solid #466171;display:grid;grid-template-columns:1fr;gap:6px;padding:7px 9px calc(env(safe-area-inset-bottom) + 7px);touch-action:pan-y}
+#balancePanel{border:1px solid #426071;background:#1c3444;border-radius:11px;padding:6px 9px;pointer-events:none}.balrow{display:flex;justify-content:space-between;align-items:center;font-size:10px;font-weight:800;gap:4px}.balrow b{white-space:nowrap}.indicator{font-size:9px;padding:3px 7px;border-radius:16px;background:#31543c;color:#d7ffe5;white-space:nowrap}.indicator.semi{background:#69532e;color:#ffedb2}.indicator.bad{background:#753b3b;color:#ffcece}.balbar,.balmeta{display:none}
+.driveGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;min-width:0}.group label{font-weight:800;color:#c9d9e3;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;margin-bottom:4px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:5px}.pad{border:1px solid #6a889a;background:#2a4658;color:#fff;border-radius:12px;min-height:56px;font-size:22px;line-height:1.04;font-weight:900;display:grid;place-content:center;text-align:center;touch-action:none;user-select:none;-webkit-user-select:none}.pad b{display:block;margin-top:4px;font-size:10px}.pad.go{background:var(--mint);color:#183020}.pad.stop{background:#70484c}.pad.on{box-shadow:inset 0 0 0 3px #ffffff55;filter:brightness(1.1)}.readout{font-size:9px;color:#afc4d2;text-align:center;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-height:12px;margin-top:3px}
+.bottomRow{display:grid;grid-template-columns:1fr 1fr;gap:6px}.bottomRow button,.posturebar button{border-radius:10px;border:1px solid #638094;background:#273f50;color:white;min-height:37px;font-size:11px;font-weight:850;padding:7px 4px}.bottomRow #foot{background:#644d3a;border-color:#a9916b}.bottomRow button:only-child{grid-column:1/-1}.posturebar{border-top:1px solid #415869;padding:6px 0 1px;display:grid;gap:7px}.postureControls{display:grid;gap:5px}.postureControls.two{grid-template-columns:1fr 1fr}.postureControls.three{grid-template-columns:1fr 1fr 1fr}.posturebar .rowTitle{font-size:10px;font-weight:850;color:#bdd2df}.posturebar button.on{background:#b4e878;color:#18301b;border-color:#d7f9b2}.posturebar button{min-height:34px}.posturebar #bodyLeft,.posturebar #bodyRight{touch-action:none}
+#toast{position:absolute;z-index:5;left:50%;top:calc(var(--scene-top) + 12px);transform:translateX(-50%);pointer-events:none;border:1px solid #ac9574;border-radius:13px;background:#142533f4;max-width:88%;min-width:195px;text-align:center;padding:9px;color:#fff;font-size:11px;font-weight:850;opacity:0;transition:opacity .18s}#toast.show{opacity:1}
+#overlay{position:absolute;z-index:9;inset:0;background:#07111cf4;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top) + 8px) 11px calc(env(safe-area-inset-bottom) + 8px)}#overlay.hidden{display:none}.panel{display:flex;flex-direction:column;width:min(100%,480px);height:min(94%,850px);min-height:0;border:1px solid #4d6b7f;border-radius:22px;background:#162938;box-shadow:0 20px 70px #000a;overflow:hidden}.panelScroll{overflow-y:auto;overscroll-behavior:contain;min-height:0;padding:18px 16px 16px;flex:1}.kicker{font-size:10px;font-weight:900;color:var(--mint);letter-spacing:.15em}.panel h2{margin:5px 0 4px;font-size:21px;line-height:1.3;letter-spacing:-.5px}.panel p{color:var(--sub);font-size:11px;line-height:1.55;margin:4px 0 11px}.field{display:block;color:#dce9f1;font-size:12px;font-weight:900;margin:14px 0 6px}.num,select{width:100%;background:#0d1e2b;border:1px solid #537084;border-radius:11px;color:#f5fcff;padding:10px;font-size:13px;min-height:42px}.tinyNote,.fine{font-size:10px!important;color:#a9c0ce!important;line-height:1.5!important}.notice{padding:10px;border-radius:11px;background:#302a24;border:1px solid #75644d;color:#f9dc9c;font-size:10px;line-height:1.5}.detailinner{padding-bottom:12px}.details{margin:15px 0;border-top:1px solid #3f5b6d;border-bottom:1px solid #3f5b6d}.details summary{font-size:12px;font-weight:900;padding:12px 0;cursor:pointer}.details label{font-size:10px;color:#c6d9e5;display:block;margin:9px 0 4px}.two,.specgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.specgrid{margin:8px 0}.specgrid div{padding:7px 9px;border-radius:9px;background:#102333;border:1px solid #38576a;font-size:10px;color:#b8cedb}.specgrid strong{display:block;color:white;font-size:12px}.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.speedpick,.seg button{padding:10px 3px;border:1px solid #597388;background:#243d4f;color:white;border-radius:10px;font-size:11px;font-weight:850}.speedpick.selected{background:var(--mint);color:#142719}.range{width:100%;accent-color:var(--mint);margin:9px 0 3px}.check{display:flex;align-items:center;gap:8px;color:#dce9f1;font-size:11px;margin:9px 0}.check input{accent-color:var(--mint);width:16px;height:16px;flex:none}.modeInfo{font-size:11px;padding:9px;background:#102331;border-radius:10px;color:#d3e3ee;margin-top:6px}.links a{color:#cbef90}.panelFooter{padding:10px 15px calc(env(safe-area-inset-bottom) + 9px);background:#102333;border-top:1px solid #426174;display:grid;grid-template-columns:1fr auto;gap:8px}.cta{background:var(--mint);color:#162718;border:0;border-radius:12px;padding:13px;font-size:14px;font-weight:950}.alt{background:#2a4354;color:white;border:1px solid #557388;border-radius:11px;padding:10px;font-size:11px;font-weight:850}.panelFooter .alt{padding:8px 10px}.miniInfo{font-size:10px;color:#a9c1cf;margin-top:7px}
+.poseCard{border:1px solid #527084;border-radius:16px;padding:10px;margin-top:11px;background:linear-gradient(130deg,#1b3544,#102333)}.poseTop{display:flex;justify-content:space-between;gap:5px;align-items:center}.poseTop b{font-size:12px}.poseTop span{font-size:9px;color:#c7dcba}.poseGrid{display:grid;grid-template-columns:minmax(0,1fr) 126px minmax(0,1fr);gap:2px;align-items:center;margin:4px 0}.poseSide{display:grid;gap:7px}.poseSide button{background:#273e50;border:1px solid #58788b;border-radius:10px;color:#e7f0f5;min-height:43px;font-size:10px;font-weight:850;line-height:1.3;padding:4px 3px}.poseSide button.on{background:#b5e779;color:#16271c;border-color:#dbffad}.poseSide button small{display:block;font-size:9px;opacity:.76;font-weight:650}.poseFigure{width:126px;height:175px;max-width:100%}.poseFigure .part{stroke:#d9e5ed;stroke-width:14;stroke-linecap:round;stroke-linejoin:round;fill:none}.poseFigure .limb{stroke:#a3bdcb;stroke-width:12}.poseStatus{text-align:center;color:#d0e7ef!important;font-size:10px!important;margin:2px 0 8px!important}.poseOptions{display:flex;flex-wrap:wrap;gap:7px}.poseOptions label{display:flex;gap:5px;align-items:center;color:#d7e5ef;font-size:10px}.poseOptions input{accent-color:var(--mint)}.figureLegend{font-size:9px!important;margin-top:5px!important;color:#adc2cf!important}
+@media(max-height:720px){:root{--scene-top:130px}.pad{min-height:44px}#controls{gap:4px}.bottomRow button{min-height:32px}.readout{display:none}#tools{top:calc(env(safe-area-inset-top) + 87px)}#progressTrack{top:calc(env(safe-area-inset-top) + 78px)}}@media(min-width:750px){#controls{max-width:620px;left:50%;transform:translateX(-50%);border-radius:15px 15px 0 0}.panel{height:min(92%,890px)}}
+[hidden]{display:none!important}
+
+/* V6: Dropbox/browser preview is often an embedded, short viewport. Keep the track interactive. */
+#app{height:var(--usable-h,100dvh);min-height:0}
+.bottomRow{grid-template-columns:repeat(3,minmax(0,1fr))}.bottomRow button{min-width:0;font-size:10px}
+#sim{min-height:0}
+.endOverlay{position:absolute;z-index:11;inset:0;display:grid;place-items:center;padding:12px;background:#07111cce;backdrop-filter:blur(6px)}
+.endSheet{width:min(100%,440px);max-height:95%;overflow:auto;overscroll-behavior:contain;background:#172d3d;border:1px solid #658498;border-radius:22px;padding:20px 18px;box-shadow:0 24px 90px #000b}
+.endSheet h2{font-size:21px;margin:6px 0}.endSheet p{font-size:12px;line-height:1.55;color:#d6e4ed}.endNumbers{background:#0b1e2b;border:1px solid #3d5e70;border-radius:11px;padding:10px;font-size:12px;color:#dbeaf1;margin:12px 0}
+.endActions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.endActions .alt{grid-column:1/-1;min-height:40px}.endActions .cta{min-width:0;padding:12px 3px;font-size:12px}.endActions .secondary{background:#34536a;color:#fff;border:1px solid #64839b}
+.replayBar{position:absolute;z-index:8;left:0;right:0;bottom:0;background:#142839;border-top:1px solid #648299;padding:9px 10px calc(env(safe-area-inset-bottom) + 10px);display:grid;gap:7px}
+.replayHead{display:flex;align-items:center;justify-content:space-between;font-size:11px;gap:8px}.replayHead span{color:#a9c2d0;font-size:10px}.replayBar input{width:100%;accent-color:#b9ef78;margin:0;min-height:20px}.replayButtons{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.replayButtons button{border-radius:8px;padding:8px 2px;border:1px solid #6b8799;background:#2a4558;color:#fff;font-size:10px;font-weight:800;min-width:0}
+#app.replaying #controls{display:none}#app.replaying #sim{bottom:var(--replay-h,118px);height:calc(100% - var(--scene-top) - var(--replay-h,118px))}
+#app.replaying #tools #pauseBtn,#app.replaying #tools #resetBtn{visibility:hidden}
+@media(max-height:650px){:root{--scene-top:99px}#hud{top:calc(env(safe-area-inset-top) + 3px)}#hud h1{font-size:14px}#status,.eyebrow{display:none}#speed{font-size:23px}#progressTrack{top:calc(env(safe-area-inset-top) + 49px)}#tools{top:calc(env(safe-area-inset-top) + 60px);height:30px}#tools button{font-size:10px}#controls{padding:3px 7px calc(env(safe-area-inset-bottom) + 3px);gap:3px}.pad{min-height:38px;font-size:16px}.pad b{font-size:9px;margin-top:1px}.group label{font-size:9px;margin-bottom:2px}.bottomRow button{min-height:28px;padding:3px;font-size:9px}.balrow{font-size:9px}#balancePanel{padding:3px 7px}.replayBar{padding-top:5px;gap:2px}.panel{height:98%;border-radius:12px}.panelScroll{padding:12px}.panelFooter{padding:7px}}
+@media(max-height:440px){:root{--scene-top:68px}#hud h1{font-size:12px}#timer{display:none}#speed{font-size:18px}#hud{left:8px;right:8px}#progressTrack{top:34px}#tools{top:40px;height:25px;gap:3px}#tools button{font-size:9px}.readout,.group label{display:none}.bottomRow button{min-height:25px}.pad{min-height:32px}.posturebar{max-height:88px;overflow:auto}#controls{max-height:54dvh}.endSheet{padding:12px}.endSheet h2{font-size:16px}.endSheet p{font-size:10px;margin:6px 0}}
+@media(max-width:330px){#tools{left:4px;right:4px;grid-template-columns:repeat(7,minmax(0,1fr))}#tools button{font-size:8px}#speed{font-size:21px}.poseGrid{grid-template-columns:minmax(0,1fr) 100px minmax(0,1fr)}.poseFigure{width:100px;height:145px}}
+[hidden]{display:none!important}
+.replayChoose{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:6px}.replayChoose button{font-size:11px;font-weight:850;padding:10px 3px;color:#ecf7ff;background:#264357;border:1px solid #5e8397;border-radius:10px}.replayViewLabel{display:flex;gap:6px;align-items:center;color:#e5f0f8;font-size:10px}.replayViewLabel select{min-height:30px;width:auto;max-width:115px;padding:3px 6px;font-size:11px}.replayHead{align-items:center}.replayHead strong{white-space:nowrap;font-size:10px}@media(max-width:340px){.replayChoose button{font-size:10px;padding:7px 2px}.replayBar{gap:3px}}
+</style></head><body><main id="app"><canvas id="sim" role="img" aria-label="바이크와 코스의 동일 미터 축척 상단 시점"></canvas>
+<header id="hud"><div><div class="eyebrow">MIRAGE · METRIC BALANCE SIM V12</div><h1 id="title">굴절 · 직각 두 번</h1><div id="status">교육용 근사 · 안전 마진 참고선 보정</div></div><div><div id="speed">0.0 <small>km/h</small></div><div id="timer">00:00 · 접촉 0</div></div></header><div id="progressTrack"><div id="progress"></div></div><div id="tag"></div><div id="tools"><div class="ztools"><button id="zoomOut" type="button" aria-label="화면 축소">−</button><button id="zoomIn" type="button" aria-label="화면 확대">＋</button></div><button id="viewBtn" type="button">전체</button><button id="demoBtn" type="button" aria-pressed="false">예시 ▶</button><button id="pauseBtn" type="button">일시정지</button><button id="resetBtn" type="button">다시하기</button><button id="menuBtn" type="button">설정</button></div>
+<div id="hintbar" aria-live="polite"></div>
+<div id="controls"><div id="balancePanel"><div class="balrow"><b>기울기 <span id="rollNum">0.0°</span> · 목표 <span id="equilNum">0.0°</span></b><span id="balanceState" class="indicator">STABLE</span></div><div class="balbar"><div id="rollNeedle" class="balneedle" style="left:50%"></div></div><div class="balmeta"><span id="rollRate"></span><span id="cgInfo"></span></div></div>
+<div class="driveGrid"><div class="group"><label>핸들 힘 · 짧게 교정 / 길게 최대 조향</label><div class="buttons"><button id="left" type="button" class="pad">↶<b>왼쪽 힘</b></button><button id="right" type="button" class="pad">↷<b>오른쪽 힘</b></button></div><div id="steerRead" class="readout">핸들 중립</div></div><div class="group"><label id="throttleLabel">속도 · 자동 6 km/h</label><div class="buttons"><button id="brake" type="button" class="pad stop">Ⅱ<b>감속 / 정지</b></button><button id="gas" type="button" class="pad go">▲<b>가속 / 재출발</b></button></div><div id="driveRead" class="readout">정속 주행</div></div></div>
+<div class="bottomRow"><button id="povBtn" type="button" aria-label="주행 시점 전환">시점 · 1인칭</button><button id="postureToggle" type="button" hidden aria-expanded="false">자세 조절 · <span id="postureSummary">중립</span> ▾</button><button id="foot" type="button">발 지지 / 정지</button></div>
+<div id="posturebar" class="posturebar" hidden><div id="kneeGroup" hidden><div class="rowTitle">무릎 벌리기 · 좌우 독립</div><div class="postureControls two"><button type="button" id="kneeLeft" aria-pressed="false">왼쪽 무릎</button><button type="button" id="kneeRight" aria-pressed="false">오른쪽 무릎</button></div></div><div id="hipGroup" hidden><div class="rowTitle">엉덩이 위치 · 좌 / 중앙 / 우</div><div class="postureControls three"><button type="button" id="hipLeft" aria-pressed="false">← 왼쪽</button><button type="button" id="hipCenter" aria-pressed="true">중앙</button><button type="button" id="hipRight" aria-pressed="false">오른쪽 →</button></div></div><div class="postureControls two"><button id="bodyLeft" type="button">⇤ 상체 왼쪽</button><button id="bodyRight" type="button">상체 오른쪽 ⇥</button></div></div></div>
+<div id="toast" role="status"></div><div id="overlay" role="dialog" aria-modal="true" aria-label="주행과 자세 설정"><div class="panel"><div class="panelScroll">
+<div class="kicker">MIRAGE · 2종 소형 / V12 BALANCE LAB</div><h2 id="modalTitle">나에게 맞는 코스·자세로 연습</h2><p id="modalText">미라쥬 차륜 비율을 유지한 교육용 저속 주행 실험입니다. 조작감과 가상 전도는 실차 검증값이 아니에요.</p>
+<section class="modeInfo" id="resultCard" hidden aria-live="polite"></section><section class="poseCard" aria-labelledby="postureTitle"><div class="poseTop"><b id="postureTitle">내 자세 · 그림을 보고 터치</b><span>선택 사항</span></div><div class="poseGrid"><div class="poseSide"><button id="hipLeftMenu" type="button" aria-pressed="false">← 엉덩이<small>왼쪽 이동</small></button><button id="kneeLeftMenu" type="button" aria-pressed="false">← 왼 무릎<small>벌리기</small></button></div><svg class="poseFigure" viewBox="0 0 160 184" role="img" aria-label="사람 모양 자세 지도: 좌우 무릎과 엉덩이 선택을 그림에 표시합니다"><defs><linearGradient id="suit" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#47728c"/><stop offset="1" stop-color="#294556"/></linearGradient></defs><circle cx="80" cy="23" r="16" fill="#d9e9ed"/><path class="part" d="M80 48 L80 115 M80 59 L44 84 M80 59 L116 84"/><path d="M65 51 Q80 39 95 51 L99 115 Q80 131 61 115 Z" fill="url(#suit)" stroke="#d3e7ed" stroke-width="3"/><g id="figurePelvis"><ellipse cx="80" cy="120" rx="21" ry="12" fill="#f1cf86" fill-opacity=".85"/><path d="M 66 120 Q80 134 94 120" fill="none" stroke="#eedfbe" stroke-width="3"/></g><path id="figureLegLeft" class="part limb" d="M 70 123 Q 61 148 59 171"/><path id="figureLegRight" class="part limb" d="M 90 123 Q 99 148 101 171"/><circle id="figureKneeLeft" cx="55" cy="150" r="6" fill="#6e899b"/><circle id="figureKneeRight" cx="105" cy="150" r="6" fill="#6e899b"/><circle id="figureHipLeft" cx="57" cy="114" r="4" fill="#6e899b"/><circle id="figureHipRight" cx="103" cy="114" r="4" fill="#6e899b"/><text x="80" y="181" fill="#c9dfe7" font-size="9" font-weight="750" text-anchor="middle">정면 · 좌 / 우</text></svg><div class="poseSide"><button id="hipRightMenu" type="button" aria-pressed="false">엉덩이 →<small>오른쪽 이동</small></button><button id="kneeRightMenu" type="button" aria-pressed="false">오른 무릎 →<small>벌리기</small></button></div></div><button id="hipCenterMenu" type="button" class="alt" style="width:100%;margin:0" aria-pressed="true">엉덩이 중앙으로 되돌리기</button><p id="poseStatus" class="poseStatus">엉덩이 중앙 · 무릎 중립</p><div class="poseOptions"><label><input id="enableKnee" type="checkbox">무릎 조작 사용</label><label><input id="enableHip" type="checkbox">엉덩이 이동 사용</label></div><p class="figureLegend">그림의 선택은 좌우 각각 반영돼요. 같은 방향으로 무릎·골반을 움직이면 무조건 안정되는 모델이 아닙니다.</p></section>
+<div class="two"><div><label class="field" for="course">연습 코스</label><select id="course"><option value="bend">① 굴절 · 직각 두 번</option><option value="curve">② 곡선 · S자</option><option value="narrow">③ 좁은길</option><option value="slalom">④ 연속진로전환</option></select></div><div><label class="field" for="entryDirection">첫 굴절 진입</label><select id="entryDirection"><option value="right">첫 조향 오른쪽</option><option value="left">첫 조향 왼쪽</option></select></div></div>
+<label class="field" for="cameraMode">기본 주행 시점 · 한 화면만 표시</label><select id="cameraMode"><option value="first" selected>1인칭 · 핸들 위에서 도로 내려다보기 (기본)</option><option value="sky">스카이뷰 · 위에서 코스와 바퀴 확인</option><option value="left">왼쪽 측면 · 자세 모식</option><option value="right">오른쪽 측면 · 자세 모식</option></select><p class="tinyNote">기본은 1인칭이며 시점 버튼으로 다른 화면을 골라 바꿀 수 있어요. 스카이뷰는 미터 축척, 측면은 자세 분석용 모식 그림입니다.</p><div class="two"><div><label class="field" for="viewRotation">코스지도 화면 방향 (1·3인칭에는 영향 없음)</label><select id="viewRotation"><option value="180" selected>180° · 바이크 앞쪽 ↑</option><option value="0">0° · 기존 화면</option><option value="90">90°</option><option value="270">270°</option></select></div><div><label class="field" for="startMode">시작 위치</label><select id="startMode"><option value="staging" selected>코스 입구 4m 전 (모식)</option><option value="gate">코스 입구 즉시</option></select></div></div><p class="tinyNote">좌·우 회전은 라이더 기준이며, 화면 회전은 보기 방향만 바꿉니다. 4m 대기 위치는 공식 출발선 실측값이 아닙니다.</p>
+<label class="field" for="model">모델</label><select id="model"><option value="classic">미라쥬 GV250 / GV250 Ei 제원</option><option value="dra">GV250DRA 제원</option></select><div class="specgrid" id="specs"></div>
+<label class="field">속도</label><div class="seg"><button type="button" class="speedpick selected" data-speed="6">6 km/h 고정</button><button type="button" class="speedpick" data-speed="7">7 km/h 고정</button><button type="button" class="speedpick" data-speed="0">수동 조절</button></div>
+<label class="field" for="tempo">연습 재생 속도</label><select id="tempo"><option value="1">실시간 · 1×</option><option value="0.5">느리게 · ½×</option><option value="0.25">아주 느리게 · ¼×</option></select><p class="tinyNote">슬로모션에서는 화면 시간만 늦어지고, 표시된 km/h는 모델 내부의 주행 속도입니다.</p>
+<div class="two"><div><label class="field" for="riderHeight">키 (cm)</label><input class="num" id="riderHeight" type="number" inputmode="decimal" min="130" max="205" value="165"></div><div><label class="field" for="riderWeight">몸무게 (kg)</label><input class="num" id="riderWeight" type="number" inputmode="decimal" min="35" max="180" value="65"></div></div>
+<label class="field" for="balanceMode">균형 보조 (가상 모드)</label><select id="balanceMode"><option value="stable">Stable · 큰 자동 보조</option><option value="semi" selected>Semi-stable · 제한된 보조</option><option value="unstable">Unstable · 거의 보조 없음</option></select><div class="modeInfo" id="modeNote">Semi-stable: 제한된 가상 균형 보조. 몸 이동과 조향이 기울기에 영향을 줍니다.</div>
+<label class="field" for="zoom">축척 · <span id="zoomTxt">56 px/m</span></label><input class="range" id="zoom" type="range" min="26" max="150" value="56" step="2">
+<label class="field" for="pathBias">굴절 참고 경로 · 진입 바깥쪽 사용량 <span id="pathTxt">0.18 m</span></label><input class="range" id="pathBias" type="range" min="0" max="0.30" step="0.01" value="0.18"><div class="modeInfo" id="guideInfo" role="status">앞·뒷바퀴 안전 마진을 계산하고 있습니다.</div><p class="tinyNote">V12 참고선은 직선 진입에서 바깥쪽 공간을 쓰되, 코너 꼭짓점에서는 자동으로 안쪽으로 잘라 앞·뒷바퀴가 외측 검지선에 닿는 현상을 줄입니다. 현재 시뮬레이터 기하에 대한 참고선이며 실제 합격선이나 유일한 정답은 아닙니다.</p>
+<div class="notice">무릎·골반 동작은 가정한 질량 분배·이동량으로 표현합니다. 가상 전도나 STABLE 표시는 실제 안전 한계가 아닙니다. 키·체중은 파일 내에서만 처리합니다.</div>
+<details class="details"><summary>차량·코스·물리 값 세부 조정</summary><div class="detailinner"><p>시험 차량 제원 및 실제 시험장의 치수를 알면 직접 바꿀 수 있어요.</p>
+<div class="two"><div><label for="bikeMass">차체+연료 질량 (kg) · 가정</label><input class="num" id="bikeMass" type="number" min="90" max="330" value="185"></div><div><label for="bikeCG">차체 CG 높이 (m) · 가정</label><input class="num" id="bikeCG" type="number" min="0.35" max="0.95" step="0.01" value="0.58"></div><div><label for="inertiaFactor">롤 관성계수 · 가정</label><input class="num" id="inertiaFactor" type="number" min="1.2" max="5" step="0.1" value="3.5"></div><div><label for="steerRate">최대 조향속도 (°/s)</label><input class="num" id="steerRate" type="number" min="15" max="100" value="28"></div><div><label for="yawTau">요 응답 지연 (s) · 가정</label><input class="num" id="yawTau" type="number" min="0.08" max="0.9" step="0.01" value="0.45"></div></div>
+<div class="two"><div><label for="wheelbase">축간거리 (m)</label><input class="num" id="wheelbase" type="number" min="0.8" max="2.5" step="0.001" value="1.520"></div><div><label for="bikeWidth">차폭 (m)</label><input class="num" id="bikeWidth" type="number" min="0.4" max="1.5" step="0.001" value="0.885"></div><div><label for="bikeLength">전장 (m)</label><input class="num" id="bikeLength" type="number" min="1.5" max="3" step="0.001" value="2.280"></div><div><label for="courseWidth">코스 폭 (m)</label><input class="num" id="courseWidth" type="number" min="0.30" max="7" step="0.01" value="1"></div><div><label for="frontDia">앞바퀴 외경 (m)</label><input class="num" id="frontDia" type="number" min="0.3" max="0.95" step="0.001" value="0.604"></div><div><label for="rearDia">뒷바퀴 외경 (m)</label><input class="num" id="rearDia" type="number" min="0.3" max="0.95" step="0.001" value="0.621"></div><div><label for="frontTire">앞 타이어 폭 (m)</label><input class="num" id="frontTire" type="number" min="0.04" max="0.3" step="0.001" value="0.110"></div><div><label for="rearTire">뒤 타이어 폭 (m)</label><input class="num" id="rearTire" type="number" min="0.04" max="0.3" step="0.001" value="0.150"></div></div><button id="restore" class="alt" type="button">기본 제원 복원</button></div></details>
+<p class="tinyNote">V8 회전 수정: 방향을 바꿀 때의 설정 지연(기본 0.45초)과 핸들을 되돌릴 때의 잔류 회전 감쇠(최대 0.10초)를 구분했습니다. 핸들 자체는 28°/s로 복귀하므로 중립까지 거리가 필요합니다. 코스 이탈은 실제 원심력이나 미끄러짐을 재현한 것이 아닙니다.</p><label class="check"><input type="checkbox" id="showGuide" checked>바깥쪽 공간 활용 참고 경로 표시</label><label class="check"><input type="checkbox" id="showTrace" checked>앞·뒷바퀴 실제 시뮬레이션 자국 표시</label>
+<p class="fine">코스 형상과 오토바이는 단순화한 2D 모델입니다. 접촉·전도·균형 보조 수치는 시험 판정이나 실제 사고 위험의 보증이 아닙니다.</p><p class="fine links">제원·규격 참고: <a href="https://www.law.go.kr/flDownload.do?bylClsCd=110201&amp;flSeq=129328407&amp;gubun=" target="_blank" rel="noopener">국내 기능시험 기준</a> · <a href="https://www.manualslib.com/manual/860797/Hyosung-Gv250-Ei.html" target="_blank" rel="noopener">GV250 Ei 설명서</a></p>
+</div><footer class="panelFooter"><button id="start" type="button" class="cta">연습 시작 →</button><button id="corner" type="button" class="alt">첫 코너부터</button></footer></div></div>
+<section id="endOverlay" class="endOverlay" role="dialog" aria-modal="true" aria-label="연습 결과" hidden>
+ <div class="endSheet"><div class="kicker">YOUR RIDE · V8</div><h2 id="endTitle">주행 기록</h2><p id="endDescription"></p><div id="endNumbers" class="endNumbers"></div><div class="endActions"><div class="replayChoose" role="group" aria-label="다시보기 시점"><button type="button" data-replay-view="first">▶ 1인칭 다시보기</button><button type="button" data-replay-view="sky">⌖ 스카이뷰 다시보기</button><button type="button" data-replay-view="left">◁ 왼쪽 측면 다시보기</button><button type="button" data-replay-view="right">▷ 오른쪽 측면 다시보기</button></div><button id="watchReplay" type="button" class="cta" hidden>▶ 다시보기</button><button id="retryRun" type="button" class="cta secondary">↻ 같은 코스 재시작</button><button id="endSettings" type="button" class="alt">⚙ 설정 변경</button></div><p class="fine">기록과 실패 판정은 교육용 모델 결과이며 실제 시험 결과가 아닙니다.</p></div>
+</section>
+<section id="replayBar" class="replayBar" aria-label="주행 다시보기" hidden><div class="replayHead"><strong>↶ 다시보기 · <span id="replayTime">00:00 / 00:00</span></strong><label class="replayViewLabel" for="replayView">시점 <select id="replayView" aria-label="다시보기 시점"><option value="first">1인칭</option><option value="sky">스카이뷰</option><option value="left">왼쪽 측면</option><option value="right">오른쪽 측면</option></select></label></div><input id="replaySeek" type="range" min="0" max="100" value="0" step="1" aria-label="재생 위치"><div class="replayButtons"><button id="replayPlay" type="button">Ⅱ 일시정지</button><button id="replaySlow" type="button">재생 1×</button><button id="replayExit" type="button">결과로</button><button id="replayRetry" type="button">다시 시작</button></div></section>
+</main><script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id), cv=$('sim'),ctx=cv.getContext('2d');const syncDock=()=>document.documentElement.style.setProperty('--dock-h',$('controls').getBoundingClientRect().height+'px');new ResizeObserver(syncDock).observe($('controls'));syncDock();
+const TWO=Math.PI*2,rad=Math.PI/180,clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v)), P=(x,y)=>({x,y}),lerp=(a,b,t)=>a+(b-a)*t,dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),unit=(a,b)=>{let d=dist(a,b);return P((b.x-a.x)/d,(b.y-a.y)/d)};
+const MODELS={classic:{name:'GV250 Ei',length:2.280,width:.885,wheelbase:1.520,frontDia:.6044,rearDia:.621,frontTire:.110,rearTire:.150,steer:40},dra:{name:'GV250DRA',length:2.240,width:.840,wheelbase:1.460,frontDia:.6238,rearDia:.6464,frontTire:.120,rearTire:.150,steer:40}};
+const SPECS={bend:{name:'굴절 · 직각 두 번',width:1.0,hint:'코너 전체보다 앞바퀴가 향하는 다음 지점을 보세요.',detail:'폭 1.0 m · 모퉁이 사이 10 m · 출입구 쪽 3 m · 모서리 반경 1 m'},curve:{name:'곡선 · S자',width:1.0,hint:'앞바퀴가 안쪽 선에 가까운지 확인하며 조향하세요.',detail:'폭 1.0 m · 표기 반경 6 m · 원주의 3/8 구간'},narrow:{name:'좁은길 · 외발교',width:.4,hint:'가만히 두면 저속 흔들림이 커집니다. 기울어진 반대쪽 핸들 힘을 짧게 툭툭 줘서 균형을 되찾으세요.',detail:'폭 0.4 m · 길이 15 m · 저속 균형 교정 필요 · 높이 5 cm (높이는 2D 화면에서 제외)'},slalom:{name:'연속진로전환',width:3,hint:'중심선의 콘 5개를 번갈아 지나가세요.',detail:'폭 3 m · 1.5 m 반폭 · 간격 4.5 m · 총 길이 27 m'}};
+let W=375,H=780,dpr=1,px=56,zoomPx=56,cam=P(0,0),viewRotation=Math.PI,overview=false,modeSpeed=6,simTimeScale=1,courseId='bend',modelId='classic',bike={...MODELS.classic},trackWidth=1,course=[],guidePath=[],cum=[],total=1,cones=[],turns=[],startHeading=Math.PI/2,traceF=[],traceR=[],timeMark=0,toastTimer,physical={mass:185,centerH:.58,inertia:3.5,rate:28,yawTau:.45,rider:65,riderHeight:1.65,total:240,h:.75,mode:"semi",pathBias:.18},fallLimit=37*rad;
+let cameraMode='first',preferredCamera='first',replayFrames=[],replayTime=0,replayPlaying=false,replayRate=1,replayRecordedAt=-1,replayLastPenalty=-1,finishedRide=null,demoBackup=null,demoProgress=0,demoPath=[],demoCum=[],demoTotal=1,demoTraceAt=0;
+let rideEvents=[],lastResult='',audioCtx=null,g={state:'menu',x:0,y:0,heading:Math.PI/2,steer:0,steerVelocity:0,speed:0,yawRate:0,elapsed:0,penalty:0,contact:false,contactTimer:0,progress:0,phi:0,rollRate:0,bodyShift:0,hipShift:0,kneeShift:0,hipSide:0,kneeLeftActive:false,kneeRightActive:false,footed:false,footCount:0,desiredLean:0,balance:"STABLE"};const held={left:false,right:false,gas:false,brake:false,bodyLeft:false,bodyRight:false};
+function ensureAudio(){try{if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx}catch(_err){return null}}
+async function unlockAudio(){let ac=ensureAudio();if(!ac)return null;try{if(ac.state==='suspended')await ac.resume();let b=ac.createBuffer(1,1,22050),s=ac.createBufferSource();s.buffer=b;s.connect(ac.destination);s.start(0);return ac}catch(_err){return ac}}
+function beep(freq=720,duration=.09,delay=0,volume=.11){let ac=ensureAudio();if(!ac)return;let play=()=>{let start=ac.currentTime+delay,o=ac.createOscillator(),gain=ac.createGain();o.type='sine';o.frequency.setValueAtTime(freq,start);gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(volume,start+.008);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);o.connect(gain);gain.connect(ac.destination);o.start(start);o.stop(start+duration+.02)};if(ac.state==='running')play();else ac.resume().then(play).catch(()=>{})}
+function startBeep(){beep(760,.075,0,.09);beep(760,.075,.18,.09);beep(760,.075,.36,.09);beep(1040,.28,.56,.12)}
+function penaltyBeep(){beep(310,.16,0,.13);beep(245,.20,.13,.11)}
+function pushLine(out,a,b,step=.075){let n=Math.ceil(dist(a,b)/step);for(let i=1;i<=n;i++)out.push(P(lerp(a.x,b.x,i/n),lerp(a.y,b.y,i/n)));}
+// Corner rounding with true circular fillets in meter-space; the 1 m inside-corner radius produces ~1.5 m centerline radius.
+function filletPath(pts,r=1.5){let out=[pts[0]];for(let i=1;i<pts.length-1;i++){let prev=pts[i-1],c=pts[i],next=pts[i+1],u=unit(prev,c),v=unit(c,next),dot=clamp(u.x*v.x+u.y*v.y,-1,1),angle=Math.acos(dot);if(angle<.02){pushLine(out,out.at(-1),c);continue;}let trim=Math.min(r*Math.tan(angle/2),dist(prev,c)*.45,dist(c,next)*.45),R=trim/Math.tan(angle/2),en=P(c.x-u.x*trim,c.y-u.y*trim),ex=P(c.x+v.x*trim,c.y+v.y*trim);pushLine(out,out.at(-1),en);let turn=Math.sign(u.x*v.y-u.y*v.x),center=P(en.x-turn*u.y*R,en.y+turn*u.x*R),a0=Math.atan2(en.y-center.y,en.x-center.x),a1=Math.atan2(ex.y-center.y,ex.x-center.x);if(turn>0){while(a1<a0)a1+=TWO}else{while(a1>a0)a1-=TWO}let n=Math.max(5,Math.ceil(Math.abs(a1-a0)*R/.055));for(let j=1;j<=n;j++){let a=lerp(a0,a1,j/n);out.push(P(center.x+R*Math.cos(a),center.y+R*Math.sin(a)));}turns.push({x:c.x,y:c.y,r:R});}pushLine(out,out.at(-1),pts.at(-1));return out;}
+function arc(out,center,r,start,turnAngle,step=.06){let n=Math.ceil(Math.abs(turnAngle*r)/step);for(let i=1;i<=n;i++){let t=start+turnAngle*i/n;out.push(P(center.x+r*Math.cos(t),center.y+r*Math.sin(t)));}}
+function rebuild(id){courseId=id;turns=[];cones=[];guidePath=[];trackWidth=readNum('courseWidth',SPECS[id].width,.3,7);
+ if(id==='bend'){
+ // Centerline: first 3 m, 10 m between corner vertices, last 3 m; two opposing 90-degree bends.
+ course=filletPath([P(5,-3),P(5,0),P(-5,0),P(-5,3)],1.5);
+ }else if(id==='curve'){
+ // Two tangent 135° circular arcs of nominal 6 m centerline radius (entry/exit are schematic).
+ const R=6,entry=P(0,4),head=-Math.PI/2;let out=[entry];pushLine(out,entry,P(0,0));let center1=P(-R,0);arc(out,center1,R,0,-3*Math.PI/4);let a=out.at(-1);let head2=head-3*Math.PI/4;let normal=P(-Math.sin(head2),Math.cos(head2));let center2=P(a.x+R*normal.x,a.y+R*normal.y),a0=Math.atan2(a.y-center2.y,a.x-center2.x);arc(out,center2,R,a0,3*Math.PI/4);let end=out.at(-1);pushLine(out,end,P(end.x,end.y-4));course=out;
+ }else if(id==='narrow'){course=[P(0,0)];pushLine(course,P(0,0),P(0,-15));}
+ else{course=[P(0,0)];pushLine(course,P(0,0),P(0,-27));for(let i=1;i<=5;i++)cones.push(P(0,-4.5*i));for(let s=0;s<=27;s+=.075){let easing=smooth(0,4.5,s)*smooth(27,22.5,s),x=.95*Math.cos(Math.PI*(s-4.5)/4.5)*easing;guidePath.push(P(x,-s));}}
+ // First-turn direction is defined in the rider's frame: original screen-left bend = rider-right turn.
+ // Reflect the COMPLETE metric geometry, not just its artwork or controls.
+ if($('entryDirection').value==='left'){
+   course=course.map(q=>P(-q.x,q.y));
+   turns=turns.map(t=>({...t,x:-t.x}));
+   cones=cones.map(q=>P(-q.x,q.y));
+   if(id==='slalom')guidePath=guidePath.map(q=>P(-q.x,q.y));
+ }
+ // Normalize winding for the first segment; use individual entry angle for the physics.
+ cum=[0];for(let i=1;i<course.length;i++)cum.push(cum.at(-1)+dist(course[i-1],course[i]));total=cum.at(-1);let a=course[0],b=course[1];startHeading=Math.atan2(b.y-a.y,b.x-a.x);buildGuide();
+ }
+function smooth(a,b,t){let u=clamp((t-a)/(b-a||1),0,1);return u*u*(3-2*u);}
+let guideValidation={minMargin:NaN,rearMargin:NaN,frontMargin:NaN,adjusted:false};
+function nearestDetail(pt){
+ let best={distance:Infinity,d:0,point:P(pt.x,pt.y)};
+ for(let i=0;i<course.length-1;i++){
+   let a=course[i],b=course[i+1],dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy;
+   let t=clamp(((pt.x-a.x)*dx+(pt.y-a.y)*dy)/(l2||1),0,1),qx=a.x+t*dx,qy=a.y+t*dy,dd=Math.hypot(pt.x-qx,pt.y-qy);
+   if(dd<best.distance)best={distance:dd,d:cum[i]+Math.sqrt(l2)*t,point:P(qx,qy)};
+ }
+ return best;
+}
+function validateGuide(path){
+ const line=.10,safety=.015,rearLimit=Math.max(.02,trackWidth/2-line/2-bike.rearTire/2-safety),frontLimit=Math.max(.02,trackWidth/2-line/2-bike.frontTire/2-safety);
+ let rearMargin=Infinity,frontMargin=Infinity;
+ for(let i=2;i<path.length-2;i+=2){
+   let t=unit(path[i-2],path[i+2]),rear=path[i],front=P(rear.x+t.x*bike.wheelbase,rear.y+t.y*bike.wheelbase),nr=nearestDetail(rear),nf=nearestDetail(front);
+   if(nr.d>.30&&nr.d<total-.30)rearMargin=Math.min(rearMargin,rearLimit-nr.distance);
+   if(nf.d>.30&&nf.d<total-.30)frontMargin=Math.min(frontMargin,frontLimit-nf.distance);
+ }
+ if(!Number.isFinite(rearMargin))rearMargin=0;if(!Number.isFinite(frontMargin))frontMargin=0;
+ return{rearMargin,frontMargin,minMargin:Math.min(rearMargin,frontMargin)};
+}
+function pullGuideInside(path){
+ // Correct the REAR-AXLE guide with the same front/rear tyre envelopes used by the
+ // simulator's line-contact logic. This is a geometry clean-up pass, not an optimal-line solver.
+ const line=.10,safety=.025,rearLimit=Math.max(.02,trackWidth/2-line/2-bike.rearTire/2-safety),frontLimit=Math.max(.02,trackWidth/2-line/2-bike.frontTire/2-safety);
+ let out=path.map(p=>P(p.x,p.y)),adjusted=false;
+ for(let pass=0;pass<7;pass++){
+   let next=out.map(p=>P(p.x,p.y)),moved=false;
+   for(let i=3;i<out.length-3;i++){
+     let t=unit(out[i-2],out[i+2]),rear=out[i],front=P(rear.x+t.x*bike.wheelbase,rear.y+t.y*bike.wheelbase),corr=P(0,0),count=0;
+     let nr=nearestDetail(rear),nf=nearestDetail(front);
+     if(nr.d>.35&&nr.d<total-.35&&nr.distance>rearLimit){let dx=nr.point.x-rear.x,dy=nr.point.y-rear.y,d=Math.hypot(dx,dy)||1,m=Math.min(.075,(nr.distance-rearLimit)*.58+.004);corr.x+=dx/d*m;corr.y+=dy/d*m;count++;}
+     if(nf.d>.35&&nf.d<total-.35&&nf.distance>frontLimit){let dx=nf.point.x-front.x,dy=nf.point.y-front.y,d=Math.hypot(dx,dy)||1,m=Math.min(.085,(nf.distance-frontLimit)*.64+.004);corr.x+=dx/d*m;corr.y+=dy/d*m;count++;}
+     if(count){let mag=Math.hypot(corr.x,corr.y);if(mag>.09){corr.x*=.09/mag;corr.y*=.09/mag;}next[i]=P(rear.x+corr.x,rear.y+corr.y);moved=adjusted=true;}
+   }
+   out=next;if(!moved)break;
+ }
+ // Tiny low-pass pass removes point-to-point jitter without moving the endpoints.
+ for(let pass=0;pass<2;pass++){let next=out.map(p=>P(p.x,p.y));for(let i=2;i<out.length-2;i++)next[i]=P(out[i].x*.82+(out[i-1].x+out[i+1].x)*.09,out[i].y*.82+(out[i-1].y+out[i+1].y)*.09);out=next;}
+ guideValidation.adjusted=adjusted;return out;
+}
+function updateGuideInfo(){
+ if(!$('guideInfo'))return;
+ const theoretical=bike.wheelbase/Math.tan(bike.steer*rad),m=guideValidation.minMargin;
+ let margin=Number.isFinite(m)?`${m>=0?'최소 여유':'접촉 가능'} ${Math.abs(m*100).toFixed(1)} cm`:'검증 대기';
+ $('guideInfo').textContent=`V12 참고선 · 앞/뒤 타이어 기하 검증 ${margin} · 조향각 기준 최소 회전반경 약 ${theoretical.toFixed(2)} m. 실제 차체 동역학·노면·시험장 오차는 포함하지 않습니다.`;
+}
+function buildGuide(){
+ if(courseId!=='bend'){if(courseId!=='slalom')guidePath=course.map(q=>P(q.x,q.y));guideValidation={...validateGuide(guidePath),adjusted:false};updateGuideInfo();return;}
+ // V12 SAFE-MARGIN HEURISTIC:
+ // 1) use some outside space on the straight approach,
+ // 2) cut toward the inside around each apex,
+ // 3) transition across the middle straight for the opposite turn,
+ // 4) pull the path inward again if the simulated front/rear tyre envelopes touch a line.
+ guidePath=[];
+ let b=clamp(physical.pathBias,0,Math.min(.30,Math.max(0,trackWidth/2-Math.max(bike.frontTire,bike.rearTire)/2-.10)));
+ let d1=nearest(P(turns[0].x,turns[0].y)).d,d2=nearest(P(turns[1].x,turns[1].y)).d,sign=$('entryDirection').value==='left'?-1:1;
+ let apexIn=Math.min(.40,Math.max(.18,trackWidth/2-bike.rearTire/2-.025)),apexWidth=2.75;
+ const bump=(s,c)=>{let x=Math.abs(s-c)/apexWidth;if(x>=1)return 0;return .5*(1+Math.cos(Math.PI*x));};
+ for(let i=0;i<course.length;i++){
+   let s=cum[i],p=course[i],p0=course[Math.max(0,i-1)],p1=course[Math.min(course.length-1,i+1)],t=unit(p0,p1);
+   let ramp=smooth(0,Math.max(.55,d1-1.35),s)*(1-smooth(d2+1.35,total,s));
+   let swap=1-2*smooth(d1+1.35,d2-1.35,s);
+   let offset=-sign*b*ramp*swap;
+   // At each apex reverse the local offset: outside approach -> inside apex -> clean exit.
+   offset+=sign*(b+apexIn)*bump(s,d1)-sign*(b+apexIn)*bump(s,d2);
+   guidePath.push(P(p.x-t.y*offset,p.y+t.x*offset));
+ }
+ guidePath=pullGuideInside(guidePath);
+ guideValidation={...validateGuide(guidePath),adjusted:guideValidation.adjusted};
+ updateGuideInfo();
+}
+function readNum(id,fallback,min,max){let n=Number($(id).value);return Number.isFinite(n)?clamp(n,min,max):fallback;}
+function updateSpecs(){let m=MODELS[modelId];$('specs').innerHTML=`<div>전장<strong>${bike.length.toFixed(3)} m</strong></div><div>전폭<strong>${bike.width.toFixed(3)} m</strong></div><div>앞–뒤 차축<strong>${bike.wheelbase.toFixed(3)} m</strong></div><div>앞 / 뒤 바퀴 외경<strong>${bike.frontDia.toFixed(3)} / ${bike.rearDia.toFixed(3)} m</strong></div>`;$('tag').innerHTML=`동일 미터 축척 · ${m.name}<br>차폭 ${bike.width.toFixed(3)}m · 축간 ${bike.wheelbase.toFixed(3)}m`;$('throttleLabel').textContent=modeSpeed?'속도 · '+modeSpeed+' km/h 고정':'속도 · 수동 가속';$('driveRead').textContent=modeSpeed?'정속 '+modeSpeed+' km/h · 브레이크 우선':'가속·감속을 직접 조작';}
+function restoreFields(){bike={...MODELS[modelId]};[['wheelbase',bike.wheelbase],['bikeWidth',bike.width],['bikeLength',bike.length],['frontDia',bike.frontDia],['rearDia',bike.rearDia],['frontTire',bike.frontTire],['rearTire',bike.rearTire],['courseWidth',SPECS[$('course').value].width],['bikeMass',185],['bikeCG',.58],['inertiaFactor',3.5],['steerRate',28],['yawTau',.45]].forEach(([id,n])=>$(id).value=n.toFixed(id==='courseWidth'?2:3));updateSpecs();}
+function readPhysics(){physical.rider=readNum('riderWeight',65,35,180);physical.riderHeight=readNum('riderHeight',165,130,205)/100;physical.mass=readNum('bikeMass',185,90,330);physical.centerH=readNum('bikeCG',.58,.35,.95);physical.inertia=readNum('inertiaFactor',3.5,1.2,5);physical.rate=readNum('steerRate',28,15,100);physical.yawTau=readNum('yawTau',.45,.08,.9);physical.mode=$('balanceMode').value;physical.pathBias=readNum('pathBias',.18,0,.30);physical.total=physical.mass+physical.rider;let seat=.70, riderH=seat+physical.riderHeight*.30;physical.h=(physical.mass*physical.centerH+physical.rider*riderH)/physical.total;zoomPx=Number($('zoom').value)||56;}
+function readBike(){bike={...MODELS[modelId],wheelbase:readNum('wheelbase',bike.wheelbase,.8,2.5),width:readNum('bikeWidth',bike.width,.4,1.5),length:readNum('bikeLength',bike.length,1.5,3),frontDia:readNum('frontDia',bike.frontDia,.3,.95),rearDia:readNum('rearDia',bike.rearDia,.3,.95),frontTire:readNum('frontTire',bike.frontTire,.04,.30),rearTire:readNum('rearTire',bike.rearTire,.04,.30)};updateSpecs();}
+function poseAt(s){let d=clamp(s,0,total);let lo=0,hi=cum.length-1;while(lo+1<hi){let m=(lo+hi)>>1;if(cum[m]<=d)lo=m;else hi=m;}let t=(d-cum[lo])/(cum[lo+1]-cum[lo]||1),a=course[lo],b=course[lo+1]||a;return{x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),heading:Math.atan2(b.y-a.y,b.x-a.x)};}
+function nearest(pt){let best={distance:Infinity,d:0};for(let i=0;i<course.length-1;i++){let a=course[i],b=course[i+1],dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy,t=clamp(((pt.x-a.x)*dx+(pt.y-a.y)*dy)/(l2||1),0,1),dd=Math.hypot(pt.x-a.x-t*dx,pt.y-a.y-t*dy);if(dd<best.distance){best.distance=dd;best.d=cum[i]+Math.sqrt(l2)*t;}}return best;}
+function pointAhead(d){return P(g.x+Math.cos(g.heading)*d,g.y+Math.sin(g.heading)*d)}
+function toast(t){$('toast').textContent=t;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),1450);}
+function captureReplay(force=false){
+ if(g.state!=='running')return;
+ if(force||g.elapsed-replayRecordedAt>=.075){replayFrames.push({...g});replayRecordedAt=g.elapsed;}
+ if(replayFrames.length>4500){replayFrames.shift();}
+}
+function showEnd(title,description,finished){
+ captureReplay(true);finishedRide={title,description,finished,elapsed:g.elapsed,penalty:g.penalty,footCount:g.footCount};
+ g.state='ended';releaseAll();$('endTitle').textContent=title;$('endDescription').textContent=description;
+ let pts=traceR.filter((_,i)=>i%3===0),avg=pts.length?pts.reduce((s,p)=>s+distanceToGuide(p),0)/pts.length:0;
+ $('endNumbers').textContent=`시간 ${clock(g.elapsed)} · 경계 접촉 ${g.penalty/10}회 · 발 지지 ${g.footCount}회 · 참고 경로 평균 편차 ${avg.toFixed(2)}m`;
+ $('endOverlay').hidden=false;$('overlay').classList.add('hidden');$('app').classList.remove('replaying');$('replayBar').hidden=true;
+}
+function showModal(title,text,finished=false){$('endOverlay').hidden=true;$('replayBar').hidden=true;$('app').classList.remove('replaying');if(g.state==='running'&&(finished||title.includes('전도')||title.includes('벗어났'))){showEnd(title,text,finished);return;}
+if(g.state==='running'){lastResult=title;showRideStats(title);}g.state='menu';releaseAll();$('modalTitle').textContent=title;$('modalText').textContent=text;$('start').textContent=finished?'다시 연습하기 →':'연습 시작 →';$('corner').hidden=$('course').value!=='bend';$('overlay').classList.remove('hidden');}
+function distanceToGuide(p){if(!guidePath.length)return 0;let best=Infinity;for(let i=0;i<guidePath.length-1;i++){let a=guidePath[i],b=guidePath[i+1],dx=b.x-a.x,dy=b.y-a.y,t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1),0,1);best=Math.min(best,Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy));}return best;}
+function showRideStats(reason){let arr=traceR.filter((_,i)=>i%3===0), avg=arr.length?arr.reduce((sum,p)=>sum+distanceToGuide(p),0)/arr.length:0;
+ let notes=rideEvents.slice(-3).map(q=>`${q.time.toFixed(1)}초 · ${q.message}`).join(' / ');
+ $('resultCard').hidden=false;$('resultCard').textContent=`이번 연습 · ${reason} | 참고 궤적과 뒷바퀴 중심의 평균 편차 약 ${avg.toFixed(2)}m (기하학적 거리만). 경계 접촉 ${g.penalty/10}회 · 발 지지 ${g.footCount}회. ${notes||'기록된 접촉 없음'}. 가상 결과이며 실제 시험 채점과 다릅니다.`;
+}
+function releaseAll(){Object.keys(held).forEach(k=>held[k]=false);document.querySelectorAll('.pad').forEach(b=>b.classList.remove('on'));}
+function restart(corner=false){ensureAudio();setCamera(preferredCamera);readPhysics();readBike();rebuild($('course').value);let d=corner&&courseId==='bend'?2.0:0,a=poseAt(d);if(!corner&&$('startMode').value==='staging'){let h=a.heading;a={...a,x:a.x-Math.cos(h)*4,y:a.y-Math.sin(h)*4};}g={state:'running',x:a.x,y:a.y,heading:a.heading,steer:0,steerVelocity:0,speed:0,yawRate:0,elapsed:0,penalty:0,contact:false,contactTimer:-10,progress:d,phi:0,rollRate:0,bodyShift:0,hipShift:0,kneeShift:0,hipSide:posture.hip,kneeLeftActive:posture.kneeLeft,kneeRightActive:posture.kneeRight,footed:false,footCount:0,desiredLean:0,balance:"STABLE"};cam=P(g.x,g.y);overview=false;traceF=[];traceR=[];rideEvents=[];lastResult='';replayFrames=[];replayRecordedAt=-1;replayTime=0;finishedRide=null;$('endOverlay').hidden=true;$('replayBar').hidden=true;$('app').classList.remove('replaying');$('resultCard').hidden=true;timeMark=0;releaseAll();$('overlay').classList.add('hidden');syncPostureControls();syncDock();$('viewBtn').textContent='코스지도';$('pauseBtn').textContent='일시정지';$('title').textContent=SPECS[courseId].name;$('status').textContent=(courseId==='bend'?'폭 '+trackWidth.toFixed(1)+'m · 첫 '+($('entryDirection').value==='left'?'왼쪽':'오른쪽')+'턴 · '+Math.round(viewRotation/rad)+'° 화면':SPECS[courseId].detail)+(simTimeScale<1?' · 슬로모션 '+simTimeScale+'×':'');$('progress').style.width='0%';$('hintbar').textContent=courseId==='bend'?'청록색: 코너 바깥쪽 공간을 활용한 실험적 참고 경로 · 정답 아님':SPECS[courseId].hint;refreshBalance();captureReplay(true);startBeep();lastFrame=performance.now();}
+// Metric single-track ground-plane steering + explicitly approximate roll dynamics.
+// NO calibrated tyre, trail, front-assembly inertia, suspension or crash threshold.
+function physicsStep(dt){
+ const inputForce=(held.right?1:0)-(held.left?1:0),maxSteer=bike.steer*rad;
+ // The buttons apply handlebar force, not a continuously commanded turn angle.
+ // Spring centring, damping and existing yaw/lean load must first be overcome;
+ // therefore opposite pressure can arrest a drift before reversing the turn.
+ const steerAccel=inputForce*6.6-g.steer*7.0-g.steerVelocity*4.6-g.yawRate*.55-g.phi*.28;
+ g.steerVelocity+=steerAccel*dt;
+ g.steerVelocity=clamp(g.steerVelocity,-physical.rate*rad,physical.rate*rad);
+ g.steer=clamp(g.steer+g.steerVelocity*dt,-maxSteer,maxSteer);
+ if(Math.abs(g.steer)>=maxSteer-.0001&&g.steer*g.steerVelocity>0)g.steerVelocity=0;
+ if(g.footed){g.speed=0;g.yawRate=0;g.phi=0;g.rollRate=0;g.desiredLean=0;g.steerVelocity*=Math.exp(-8*dt);return;}
+ if(held.brake)g.speed=Math.max(0,g.speed-dt*2.25);
+ else if(modeSpeed){let v=modeSpeed/3.6;g.speed+=clamp(v-g.speed,-dt*1.05,dt*.95);}
+ else if(held.gas)g.speed=Math.min(11/3.6,g.speed+dt*.75);
+ else g.speed=Math.max(0,g.speed-dt*.34);
+ let bodyTarget=((held.bodyRight?1:0)-(held.bodyLeft?1:0))*.14;
+ g.bodyShift+=clamp(bodyTarget-g.bodyShift,-dt*.27,dt*.27);
+ // Educational approximations: hip moves a fraction of rider mass; right knee moves a small segment.
+ g.hipShift+=clamp((g.hipSide&&$('enableHip').checked?g.hipSide*.11:0)-g.hipShift,-dt*.22,dt*.22);
+ g.kneeShift+=clamp((($('enableKnee').checked?((g.kneeRightActive?1:0)-(g.kneeLeftActive?1:0)):0)*.18)-g.kneeShift,-dt*.30,dt*.30);
+ let effectiveShift=g.bodyShift+.58*g.hipShift+.09*g.kneeShift;
+ let yaw=g.speed*Math.tan(g.steer)/bike.wheelbase;
+ let aLat=g.speed*g.yawRate; // lateral acceleration [m/s²]; sign positive = rider's right.
+ let shiftCorrection=(physical.rider/physical.total)*effectiveShift/physical.h;
+ g.desiredLean=Math.atan2(aLat,9.81)-Math.atan(shiftCorrection);
+ let mass=physical.total,h=physical.h,I=mass*h*h*physical.inertia;
+ let gravitational=mass*9.81*h*Math.sin(g.phi);
+ let turning=-mass*aLat*h*Math.cos(g.phi);
+ let bodyTorque=physical.rider*9.81*effectiveShift*Math.cos(g.phi);
+ // At walking pace a bike does not balance itself indefinitely. Narrow-course
+ // wobble represents small rider/road disturbances, while a brief opposite
+ // handlebar pressure moves the support point back beneath the combined CG.
+ let narrowFactor=courseId==='narrow'?clamp((2.35-g.speed)/1.25,.25,1):courseId==='slalom'?.18:0;
+ let balanceWobble=narrowFactor*mass*9.81*h*(.020*Math.sin(g.elapsed*1.63+.7)+.009*Math.sin(g.elapsed*4.17+1.8));
+ let supportCorrection=narrowFactor*inputForce*mass*9.81*h*.072;
+ let mode=physical.mode;
+ let assist=mode==='stable'?1:mode==='semi'?.55:.06;
+ if(courseId==='narrow')assist*=mode==='stable'?.68:.34;
+ let inertiaRoll=(gravitational+turning+bodyTorque+balanceWobble+supportCorrection)/I;
+ let corrective=assist*(12*(g.desiredLean-g.phi)-5.4*g.rollRate);
+ corrective=clamp(corrective,-(mode==='stable'?6:mode==='semi'?3.4:.35),mode==='stable'?6:mode==='semi'?3.4:.35);
+ let damping=-.21*g.rollRate;
+ g.rollRate+=(inertiaRoll+corrective+damping)*dt;
+ g.rollRate=clamp(g.rollRate,-4,4);
+ g.phi+=g.rollRate*dt;
+ // Entering a turn has a visual/heading response lag, but releasing steering should
+ // not continue carrying a fictional yaw angular momentum around the next corner.
+ // A real motorcycle's heading follows tyre contact and steering; this remains a
+ // simplified educational kinematic model, NOT calibrated handling or crash prediction.
+ const unwinding=Math.abs(yaw)<Math.abs(g.yawRate)||yaw*g.yawRate<0;
+ const tau=unwinding?Math.min(physical.yawTau,.10):physical.yawTau;
+ g.yawTauActive=tau;
+ g.yawRate+=(yaw-g.yawRate)*(1-Math.exp(-dt/Math.max(.015,tau)));
+ // Midpoint integration reduces visual overshoot relative to delayed yaw integration.
+ const newHeading=g.heading+g.yawRate*dt;
+ g.x+=Math.cos((g.heading+newHeading)/2)*g.speed*dt;
+ g.y+=Math.sin((g.heading+newHeading)/2)*g.speed*dt;
+ g.heading=newHeading;
+}
+function balanceGrade(){let a=Math.abs(g.phi/rad),v=Math.abs(g.rollRate/rad),error=Math.abs((g.phi-g.desiredLean)/rad);if(a<9&&v<14&&error<11)return'STABLE';if(a<24&&v<42&&error<25)return'SEMI-STABLE';return'UNSTABLE';}
+function refreshBalance(){g.balance=balanceGrade();$('rollNum').textContent=(g.phi/rad).toFixed(1)+'°';$('equilNum').textContent=(g.desiredLean/rad).toFixed(1)+'°';$('rollRate').textContent='기울기 변화 '+(g.rollRate/rad).toFixed(1)+'°/s';$('cgInfo').textContent='추정 합성 CG '+physical.h.toFixed(2)+' m';$('rollNeedle').style.left=(50+clamp(g.phi/rad,-38,38)/38*50)+'%';let badge=$('balanceState');badge.textContent=g.balance;badge.className='indicator'+(g.balance==='SEMI-STABLE'?' semi':g.balance==='UNSTABLE'?' bad':'');let releaseSecs=Math.abs(g.steer/rad)/Math.max(1,physical.rate);
+ $('steerRead').textContent=(g.steer>0?'오른쪽 ':g.steer<0?'왼쪽 ':'조향 ')+Math.abs(g.steer/rad).toFixed(0)+'° · 몸 '+(g.bodyShift*100).toFixed(0)+' cm'+(releaseSecs>.15?' · 중립 복귀 약 '+releaseSecs.toFixed(1)+'초 ('+(g.speed*releaseSecs).toFixed(1)+'m)':'');$('driveRead').textContent=g.footed?'발 지지 · 정지 / ▲로 재출발':(modeSpeed?'정속 '+modeSpeed+' km/h · ':'수동 · ')+'조향 변화 최대 '+physical.rate+'°/s';}
+function tick(dt){if(g.state!=='running')return;dt=clamp(dt,0,.05);g.elapsed+=dt;
+ let steps=Math.max(1,Math.ceil(dt/.008));for(let k=0;k<steps;k++){
+ physicsStep(dt/steps);
+ if(Math.abs(g.phi)>fallLimit){rideEvents.push({time:g.elapsed,message:'가상 기울기 한계'});g.speed=0;refreshBalance();showModal('가상 전도 한계에 도달했어요','기울기 '+Math.abs(g.phi/rad).toFixed(1)+'° · 이 한계는 교육용 임의 값이며 실제 전도 각도나 사고를 예측하지 않습니다. Stable 모드로 바꾸거나, 조향·몸 이동을 줄여 비교해 보세요.');return;}
+ }
+ let rear=P(g.x,g.y),front=pointAhead(bike.wheelbase),nr=nearest(rear),nf=nearest(front),line=.10,allow=trackWidth/2-line/2;
+ let first=course[0],forward=P(Math.cos(startHeading),Math.sin(startHeading));
+ let frontS=(front.x-first.x)*forward.x+(front.y-first.y)*forward.y;
+ let rearS=(rear.x-first.x)*forward.x+(rear.y-first.y)*forward.y;
+ let staging=$('startMode').value==='staging' && (frontS<0 || rearS<0) && g.progress<1.0;
+ let rearLine=!staging&&nr.distance+bike.rearTire/2>=allow,frontLine=!staging&&nf.distance+bike.frontTire/2>=allow;
+ let rearCone=false,frontCone=false,bodyCone=false;
+ for(let cone of cones){if(dist(cone,rear)<.22+bike.rearTire/2)rearCone=true;if(dist(cone,front)<.22+bike.frontTire/2)frontCone=true;
+ let mid=pointAhead(bike.wheelbase*.83),p=P(-Math.sin(g.heading),Math.cos(g.heading));for(let side of [-1,1])if(dist(cone,P(mid.x+p.x*bike.width*.5*side,mid.y+p.y*bike.width*.5*side))<.24)bodyCone=true;}
+ let contact=rearLine||frontLine||rearCone||frontCone||bodyCone;
+ if(contact&&!g.contact&&g.elapsed-g.contactTimer>1){let reason=bodyCone?'차체 라바콘 접촉':rearCone&&frontCone?'앞·뒷바퀴 라바콘 접촉':rearCone?'뒷바퀴 라바콘 접촉':frontCone?'앞바퀴 라바콘 접촉':rearLine&&frontLine?'앞·뒷바퀴 검지선 접촉':rearLine?'뒷바퀴 검지선 접촉':'앞바퀴 검지선 접촉';rideEvents.push({time:g.elapsed,type:'penalty',points:10,message:reason});g.penalty+=10;g.contactTimer=g.elapsed;penaltyBeep();toast(reason+' · -10점');if(navigator.vibrate)navigator.vibrate([55,35,55]);}g.contact=contact;
+ if(!staging&&(nr.distance>trackWidth/2+2||nf.distance>trackWidth/2+2)){rideEvents.push({time:g.elapsed,message:'코스 이탈'});g.speed=0;showModal('코스 밖으로 벗어났어요','앞·뒷바퀴의 궤적을 비교해 보세요. 게임 속 가상 판정일 뿐 실제 시험과 다릅니다.');return;}
+ g.progress=Math.max(g.progress,Math.min(nr.d,nf.d));if((g.progress>total-1.0)&&dist(front,course.at(-1))<.92){g.speed=0;showModal('코스를 끝까지 주행했어요!','연습시간 '+clock(g.elapsed)+' · 연습 접촉 '+g.penalty/10+'회 · 발 지지 '+g.footCount+'회. 실제 채점과 다릅니다.',true);return;}
+ if(g.elapsed-timeMark>.075){traceR.push(rear);traceF.push(front);timeMark=g.elapsed;if(traceR.length>2200){traceR.shift();traceF.shift();}}
+ $('speed').innerHTML=(g.speed*3.6).toFixed(1)+' <small>km/h</small>';$('timer').textContent=clock(g.elapsed)+' · 접촉 '+g.penalty/10+' · 발 '+g.footCount;$('progress').style.width=(100*g.progress/total).toFixed(1)+'%';refreshBalance();captureReplay();
+}
+function clock(t){let n=Math.floor(t);return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');}
+function resize(){let r=cv.getBoundingClientRect();W=r.width;H=r.height;dpr=Math.min(2,devicePixelRatio||1);cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);}
+function screen(p){let x=(p.x-cam.x)*px,y=(p.y-cam.y)*px,c=Math.cos(viewRotation),s=Math.sin(viewRotation);return P(x*c-y*s+W/2,x*s+y*c+H*.5)}
+function routePath(points){if(!points.length)return;let p=screen(points[0]);ctx.beginPath();ctx.moveTo(p.x,p.y);for(let i=1;i<points.length;i++){p=screen(points[i]);ctx.lineTo(p.x,p.y);}}
+function stroke(points,width,color,dash){ctx.save();ctx.strokeStyle=color;ctx.lineWidth=Math.max(.5,width*px);ctx.lineCap='round';ctx.lineJoin='round';if(dash)ctx.setLineDash(dash.map(v=>v*px));routePath(points);ctx.stroke();ctx.restore();}
+function textAt(text,p,color='#e5edf2',size=11){let a=screen(p);ctx.fillStyle=color;ctx.font=`700 ${size}px -apple-system, sans-serif`;ctx.textAlign='center';ctx.fillText(text,a.x,a.y);}
+function drawGround(){ctx.fillStyle='#303d43';ctx.fillRect(0,0,W,H);let spacing=px;ctx.strokeStyle='#ffffff0c';ctx.lineWidth=.7;let origin=screen(P(0,0)),ox=((origin.x%spacing)+spacing)%spacing,oy=((origin.y%spacing)+spacing)%spacing;for(let x=ox;x<W;x+=spacing){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}for(let y=oy;y<H;y+=spacing){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}}
+function drawArrow(pos,head,r=.3){let p=screen(pos);ctx.save();ctx.translate(p.x,p.y);ctx.rotate(head+viewRotation);ctx.strokeStyle='#b9ef78';ctx.lineCap='round';ctx.lineWidth=Math.max(1.5,.07*px);ctx.beginPath();ctx.moveTo(-r*px,-r*.65*px);ctx.lineTo(r*.65*px,0);ctx.lineTo(-r*px,r*.65*px);ctx.stroke();ctx.restore();}
+function renderRoad(){
+ if($('startMode').value==='staging'){
+   let a=course[0],u=P(Math.cos(startHeading),Math.sin(startHeading)),s=P(a.x-u.x*4,a.y-u.y*4);
+   stroke([s,a],Math.max(trackWidth+.5,1.6),'#22343bd8');
+   stroke([s,a],Math.max(trackWidth,.95),'#65778199');
+   let normal=P(-u.y,u.x),m=screen(s);ctx.save();ctx.strokeStyle='#d8f5a5';ctx.setLineDash([5,4]);ctx.lineWidth=2;ctx.beginPath();let a1=screen(P(s.x-normal.x*.85,s.y-normal.y*.85)),a2=screen(P(s.x+normal.x*.85,s.y+normal.y*.85));ctx.moveTo(a1.x,a1.y);ctx.lineTo(a2.x,a2.y);ctx.stroke();ctx.restore();
+   textAt('연습 출발 · 모식',P(s.x+normal.x*1.7,s.y+normal.y*1.7),'#dff9ca',10);
+ }
+ stroke(course,trackWidth+.22,'#111b21');stroke(course,trackWidth+.10,'#ecc76b');stroke(course,trackWidth-.10,'#606d73');if(courseId==='narrow')stroke(course,trackWidth-.10,'#86939a');
+ if($('showGuide').checked){let marked=guidePath.length?guidePath:course;stroke(marked,.055,'#84f0d7dd',[.30,.15]);let inc=Math.max(1.4,total/18);for(let s=1.2;s<total-1;s+=inc){let i=Math.min(marked.length-2,Math.round((marked.length-1)*s/total)),a=marked[i],b=marked[i+1];drawArrow(a,Math.atan2(b.y-a.y,b.x-a.x),.17);}if(turns.length)for(let [i,t] of turns.entries())textAt('↳ '+(i+1),P(t.x,t.y-.65),'#d7eab0',10);}
+ // 1 m ruler always has the same scale as the bike and road.
+ let r=P(20,H-28);ctx.save();ctx.fillStyle='#101c27d6';ctx.fillRect(r.x-8,r.y-31,px+18,43);ctx.strokeStyle='#f9e6bc';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(r.x,r.y);ctx.lineTo(r.x+px,r.y);ctx.moveTo(r.x,r.y-5);ctx.lineTo(r.x,r.y+5);ctx.moveTo(r.x+px,r.y-5);ctx.lineTo(r.x+px,r.y+5);ctx.stroke();ctx.fillStyle='#fff';ctx.font='bold 10px sans-serif';ctx.fillText('1 m',r.x+px*.5-6,r.y-11);ctx.restore();
+ for(let c of cones){let p=screen(c);ctx.fillStyle='#f78c4e';ctx.strokeStyle='#ffe5bc';ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(p.x,p.y,Math.max(4,.22*px),0,TWO);ctx.fill();ctx.stroke();ctx.fillStyle='#ffdf8a';ctx.beginPath();ctx.arc(p.x,p.y,Math.max(1,.08*px),0,TWO);ctx.fill();}
+ for(let pt of [course[0],course.at(-1)]){let s=screen(pt),p=pt===course[0]?course[1]:course.at(-2),h=Math.atan2(pt.y-p.y,pt.x-p.x)+Math.PI/2+viewRotation,ex=Math.cos(h)*trackWidth*.52*px,ey=Math.sin(h)*trackWidth*.52*px;ctx.beginPath();ctx.lineWidth=Math.max(2,.07*px);ctx.strokeStyle=pt===course[0]?'#9bed74':'#f8d991';ctx.moveTo(s.x-ex,s.y-ey);ctx.lineTo(s.x+ex,s.y+ey);ctx.stroke();}
+ if($('showTrace').checked){stroke(traceR,.035,'#90eaffd0');stroke(traceF,.035,'#ffaaa6d0');}
+}
+function round(x,y,w,h,r,fill,strokeColor,line=1){ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fillStyle=fill;ctx.fill();if(strokeColor){ctx.lineWidth=line;ctx.strokeStyle=strokeColor;ctx.stroke();}}
+function drawBike(){let s=screen(g),f=pointAhead(bike.wheelbase),pF=screen(f);ctx.save();ctx.translate(s.x,s.y);ctx.rotate(g.heading+Math.PI/2+viewRotation); // local forward = negative Y; actual heading points ahead, rear axle = (0,0)
+ let z=px,len=bike.length,w=bike.width,L=bike.wheelbase;
+ ctx.fillStyle='#10191fc0';ctx.beginPath();ctx.ellipse(3,3,w*.57*z,(len+.08)*.5*z,0,0,TWO);ctx.fill();
+ // rear tire nominal outer diameter and contact width are separate; tire outline in top view is a rectangle.
+ round(-bike.rearTire*z/2,-bike.rearDia*z/2,bike.rearTire*z,bike.rearDia*z,Math.max(1,.05*z),'#11171b','#dce5ec',Math.max(1,.025*z));
+ // actual-length silhouette: -0.42m behind rear axle, 1.86m forward for classic 2.28m vehicle.
+ let behind=Math.max(.12,(len-L)*.53),ahead=len-behind;
+ round(-w*.31*z,-(ahead-.22)*z,w*.62*z,(len-.25)*z,.15*z,'#172633','#c4d5df',Math.max(1,.018*z));
+ round(-w*.19*z,-(L-.25)*z,w*.38*z,(L*.82)*z,.08*z,'#a9bdc4','#edf4f9',Math.max(.7,.013*z));
+ // Handlebar overall span = published full width.
+ ctx.strokeStyle='#eff5fa';ctx.lineWidth=Math.max(1,.058*z);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-w*z/2,-(L-.28)*z);ctx.lineTo(w*z/2,-(L-.28)*z);ctx.stroke();
+ round(-w*.19*z,-.22*z,w*.38*z,.45*z,.07*z,'#273747','#869bac',Math.max(.8,.02*z));
+ // steering wheel drawn about FRONT AXLE, physical OD & tread width.
+ ctx.save();ctx.translate(0,-L*z);ctx.rotate(g.steer);round(-bike.frontTire*z/2,-bike.frontDia*z/2,bike.frontTire*z,bike.frontDia*z,.04*z,'#080f15','#f0cf87',Math.max(1,.025*z));ctx.fillStyle='#b9ef78';ctx.beginPath();ctx.arc(0,0,Math.max(2,.052*z),0,TWO);ctx.fill();ctx.restore();
+ ctx.fillStyle='#90eaff';ctx.beginPath();ctx.arc(0,0,Math.max(2,.047*z),0,TWO);ctx.fill();ctx.restore();
+ // Top-view ground projection of combined CG (roll + rider lateral movement).
+ let n=P(-Math.sin(g.heading),Math.cos(g.heading)),lateral=physical.h*Math.sin(g.phi)+(physical.rider/physical.total)*(g.bodyShift+.58*g.hipShift+.09*g.kneeShift);
+ let cg=screen(P(g.x+Math.cos(g.heading)*bike.wheelbase*.48+n.x*lateral,g.y+Math.sin(g.heading)*bike.wheelbase*.48+n.y*lateral));
+ ctx.save();ctx.strokeStyle='#ffcf76';ctx.fillStyle='#ffcf76';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(cg.x,cg.y,Math.max(3,px*.07),0,TWO);ctx.fill();ctx.strokeStyle='#171f29';ctx.beginPath();ctx.arc(cg.x,cg.y,Math.max(1.5,px*.025),0,TWO);ctx.fill();ctx.restore();
+ // front / rear axle & wheel contact center annotations zoom-independent
+ if(overview||px>27){ctx.save();ctx.font='bold 10px sans-serif';ctx.fillStyle='#a2e7f9';ctx.fillText('R',s.x+8,s.y+10);ctx.fillStyle='#ffe0a0';ctx.fillText('F',pF.x+8,pF.y-9);ctx.restore();}
+}
+function drawLegend(){if(W<650)return;ctx.save();ctx.font='bold 10px sans-serif';ctx.textAlign='left';let x=12,y=H*.71;ctx.fillStyle='#11212de8';ctx.fillRect(x-5,y-17,160,45);ctx.fillStyle='#90eaff';ctx.fillText('━ 뒷바퀴 자국',x,y);ctx.fillStyle='#ffaaa6';ctx.fillText('━ 앞바퀴 자국 · ● CG 투영',x,y+17);ctx.restore();}
+// V6 illustrative ground-plane perspective: NOT a measured optical camera or a 3D crash model.
+function drawPerspective(){
+ let first=cameraMode==='first',heading=g.heading,fw=P(Math.cos(heading),Math.sin(heading)),right=P(-fw.y,fw.x),origin=P(g.x-fw.x*(first?0:3.8),g.y-fw.y*(first?0:3.8));
+ // The example rider looks downward at the handlebars and nearby ground; avoid a sky-heavy horizon.
+ const horizon=H*(H<280?.055:.075), focal=Math.min(W*1.54,H*1.7),camH=first?1.20:2.05,depth=.92;
+ function project(p){let dx=p.x-origin.x,dy=p.y-origin.y,f=dx*fw.x+dy*fw.y,l=dx*right.x+dy*right.y;if(f<.18)return null;let z=f+depth;return{x:W*.5+l*focal/z,y:horizon+camH*focal/z,scale:focal/z,f};}
+ function poly(points,fill,stroke){let pts=points.map(project);if(pts.some(p=>!p))return;ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);for(let j=1;j<pts.length;j++)ctx.lineTo(pts[j].x,pts[j].y);ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}}
+ function line(a,b,color,width){let pa=project(a),pb=project(b);if(!pa||!pb)return;ctx.strokeStyle=color;ctx.lineWidth=Math.max(1,width*(pa.scale+pb.scale)*.5);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);ctx.stroke();}
+ // Rider looks down at ground as in the supplied training footage, not into a large sky.
+ ctx.fillStyle='#5b6564';ctx.fillRect(0,0,W,H);
+ ctx.fillStyle='#78827e';ctx.fillRect(0,0,W,Math.max(0,horizon));
+ ctx.save();ctx.translate(W/2,horizon);ctx.rotate(-clamp(g.phi,-.35,.35)*.30);ctx.translate(-W/2,-horizon);
+ let ribbon=[];
+ if($('startMode').value==='staging'){let a=course[0],u=P(Math.cos(startHeading),Math.sin(startHeading));for(let s=-4;s<0;s+=.14)ribbon.push(P(a.x+u.x*s,a.y+u.y*s));}
+ ribbon.push(...course);
+ // Draw distant road first so near road occludes it; both rims retain the same metric width.
+ for(let i=ribbon.length-2;i>=0;i--){let a=ribbon[i],b=ribbon[i+1],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,n=P(-dy/d,dx/d),w=trackWidth*.5;
+  let center=P((a.x+b.x)*.5,(a.y+b.y)*.5),ahead=(center.x-origin.x)*fw.x+(center.y-origin.y)*fw.y;
+  if(ahead<-.6||ahead>40)continue;
+  let pad=.10;
+  poly([P(a.x+n.x*(w+pad),a.y+n.y*(w+pad)),P(b.x+n.x*(w+pad),b.y+n.y*(w+pad)),P(b.x-n.x*(w+pad),b.y-n.y*(w+pad)),P(a.x-n.x*(w+pad),a.y-n.y*(w+pad))],'#202b30');
+  poly([P(a.x+n.x*w,a.y+n.y*w),P(b.x+n.x*w,b.y+n.y*w),P(b.x-n.x*w,b.y-n.y*w),P(a.x-n.x*w,a.y-n.y*w)],'#636c6d');
+  line(P(a.x+n.x*w,a.y+n.y*w),P(b.x+n.x*w,b.y+n.y*w),'#f3d77a',.055);line(P(a.x-n.x*w,a.y-n.y*w),P(b.x-n.x*w,b.y-n.y*w),'#f3d77a',.055);
+ }
+ if($('showGuide').checked)for(let i=0;i<guidePath.length-1;i+=4)if(Math.floor(i/4)%2===0)line(guidePath[i],guidePath[Math.min(guidePath.length-1,i+4)],'#91f6d6',.06);
+ for(let cone of cones){let p=project(cone);if(!p||p.f>35)continue;let r=Math.max(2,.16*p.scale);ctx.fillStyle='#f08d50';ctx.beginPath();ctx.moveTo(p.x,p.y-r*2.1);ctx.lineTo(p.x-r,p.y);ctx.lineTo(p.x+r,p.y);ctx.closePath();ctx.fill();}
+ ctx.restore();
+ // At first-person the handlebars are a fixed cockpit; third-person adds a stylized rider/bike silhouette.
+ if(first){
+  let y=H+Math.max(9,H*.035),lean=clamp(g.phi/rad,-24,24)*.55,steer=clamp(g.steer/rad,-40,40)*.20;
+  ctx.save();ctx.translate(W*.5+lean,y);ctx.rotate(steer*rad);
+  ctx.strokeStyle='#142027';ctx.lineWidth=Math.max(9,W*.033);ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-W*.38,-H*.14);ctx.quadraticCurveTo(0,-H*.23,W*.38,-H*.14);ctx.stroke();
+  for(let side of [-1,1]){ctx.fillStyle='#19272e';ctx.beginPath();ctx.ellipse(side*W*.36,-H*.13,17,12,0,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='#222f37';ctx.beginPath();ctx.ellipse(0,H*.01,W*.31,H*.20,0,Math.PI,2*Math.PI);ctx.fill();ctx.strokeStyle='#b7cbd1';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-H*.045,Math.max(15,W*.075),0,Math.PI);ctx.stroke();ctx.restore();
+ }else{
+  let y=H*.80,scale=Math.min(W*.55,H*.65),lean=clamp(g.phi/rad,-25,25)*.7;
+  ctx.save();ctx.translate(W*.5+lean,y);ctx.rotate(-clamp(g.phi,-.35,.35)*.38);
+  ctx.fillStyle='#10191e';ctx.beginPath();ctx.ellipse(0,scale*.33,scale*.21,scale*.24,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#253741';ctx.beginPath();ctx.ellipse(0,scale*.04,scale*.27,scale*.40,0,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#18232c';ctx.lineWidth=scale*.10;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(-scale*.19,scale*.12);ctx.lineTo(-scale*.40,scale*.32);ctx.moveTo(scale*.19,scale*.12);ctx.lineTo(scale*.40,scale*.32);ctx.stroke();
+  ctx.fillStyle='#e4edf3';ctx.beginPath();ctx.arc(0,-scale*.33,scale*.15,0,Math.PI*2);ctx.fill();ctx.fillStyle='#f47068';ctx.fillRect(-scale*.085,scale*.29,scale*.17,scale*.055);ctx.restore();
+ }
+ ctx.fillStyle='#102331da';ctx.fillRect(8,8,Math.min(W-16,260),31);ctx.font='bold 11px sans-serif';ctx.fillStyle='#d7efdf';ctx.fillText('1인칭 · 핸들 위 전방 시야',16,21);ctx.font='10px sans-serif';ctx.fillStyle='#d6e1e9';ctx.fillText('상단도와 동일한 경로 · 원근 모식',16,34);
+}
+
+// Side-camera: schematic orthographic silhouette, not calibrated camera footage or 3D body dynamics.
+function drawSideView(){
+ const left=cameraMode==='left', side=left?-1:1;
+ ctx.fillStyle='#34464b';ctx.fillRect(0,0,W,H);
+ const horizon=H*.61;ctx.fillStyle='#506167';ctx.fillRect(0,horizon,W,H-horizon);
+ ctx.strokeStyle='#d9bf69';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,horizon+3);ctx.lineTo(W,horizon+3);ctx.stroke();
+ const s=Math.min(W/3.4,H/3.6),cx=W*.5,cy=horizon-0.34*s;
+ ctx.save();ctx.translate(cx,cy);ctx.scale(side*s,-s);
+ // Bike dimensions are rendered in metres: axle centres have exactly bike.wheelbase separation.
+ let rear=-bike.wheelbase/2,front=bike.wheelbase/2,radRear=bike.rearDia/2,radFront=bike.frontDia/2;
+ ctx.lineWidth=.025;ctx.strokeStyle='#c3d7dc';ctx.fillStyle='#17252e';
+ for(let [x,r] of [[rear,radRear],[front,radFront]]){ctx.beginPath();ctx.arc(x,0,r,0,TWO);ctx.fill();ctx.stroke();ctx.beginPath();ctx.moveTo(x-r*.77,0);ctx.lineTo(x+r*.77,0);ctx.moveTo(x,-r*.77);ctx.lineTo(x,r*.77);ctx.stroke();}
+ ctx.strokeStyle='#a9c2ca';ctx.lineWidth=.065;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(rear,0);ctx.lineTo(0,.47);ctx.lineTo(front,0);ctx.lineTo(-.36,.24);ctx.lineTo(rear,0);ctx.moveTo(0,.47);ctx.lineTo(.43,.70);ctx.stroke();
+ ctx.strokeStyle='#d9dfe2';ctx.lineWidth=.048;ctx.beginPath();ctx.moveTo(.43,.70);ctx.lineTo(.43,.84);ctx.moveTo(.23,.84);ctx.lineTo(.63,.84);ctx.stroke();
+ ctx.fillStyle='#263b48';ctx.beginPath();ctx.ellipse(-.14,.40,.48,.12,0,0,TWO);ctx.fill();
+ // Hip fore/aft location is symbolic; lateral movement is shown with a labelled arrow below.
+ ctx.strokeStyle='#e7eced';ctx.lineWidth=.085;ctx.beginPath();ctx.moveTo(-.29,.51);ctx.lineTo(-.30,1.05);ctx.lineTo(.1,1.32);ctx.stroke();
+ ctx.fillStyle='#e7eced';ctx.beginPath();ctx.arc(.13,1.48,.16,0,TWO);ctx.fill();
+ ctx.strokeStyle='#adcfe1';ctx.lineWidth=.09;ctx.beginPath();ctx.moveTo(-.29,.53);ctx.lineTo(-.65,.23);ctx.lineTo(-.33,.10);ctx.moveTo(-.29,.53);ctx.lineTo(.06,.21);ctx.lineTo(.38,.10);ctx.moveTo(0,1.13);ctx.lineTo(.43,.83);ctx.stroke();
+ ctx.restore();
+ ctx.fillStyle='#142632e8';ctx.fillRect(9,9,Math.min(W-18,280),50);ctx.font='bold 12px sans-serif';ctx.fillStyle='#ecf7ff';ctx.fillText((left?'왼쪽':'오른쪽')+' 측면 · 자세 모식도',19,29);ctx.font='10px sans-serif';ctx.fillStyle='#d2e2eb';ctx.fillText('차륜거리 축척 적용 · 실제 영상 아님',19,45);
+ const tags=[`기울기 ${Math.abs(g.phi/rad).toFixed(1)}° (${g.phi>0?'우':g.phi<0?'좌':'중립'})`,`엉덩이 ${g.hipSide>0?'오른쪽':g.hipSide<0?'왼쪽':'중앙'}`,`무릎 좌 ${g.kneeLeftActive?'벌림':'중립'} · 우 ${g.kneeRightActive?'벌림':'중립'}`];
+ let w=Math.min(W-18,330);ctx.fillStyle='#122633d9';ctx.fillRect((W-w)/2,H-84,w,73);ctx.font='bold 11px sans-serif';ctx.textAlign='center';ctx.fillStyle='#eff8ff';tags.forEach((t,i)=>ctx.fillText(t,W/2,H-63+i*21));ctx.textAlign='left';
+}
+function render(){if(!W||!H)return;ctx.setTransform(dpr,0,0,dpr,0,0);
+ if(cameraMode==='left'||cameraMode==='right'){drawSideView();return;}
+ if(cameraMode==='first'){drawPerspective();return;}
+ if(cameraMode==='sky'&&!overview){px=zoomPx;cam.x=lerp(cam.x,g.x,.15);cam.y=lerp(cam.y,g.y,.15);drawGround();renderRoad();drawBike();if($('showTrace').checked)drawLegend();return;}
+ if(overview){let xs=course.map(q=>q.x),ys=course.map(q=>q.y),minx=Math.min(...xs)-3,maxx=Math.max(...xs)+3,miny=Math.min(...ys)-3,maxy=Math.max(...ys)+3,flip=Math.abs(Math.sin(viewRotation))>.5;px=Math.max(3,Math.min((W-25)/(flip?maxy-miny:maxx-minx),(H-28)/(flip?maxx-minx:maxy-miny),38));cam=P((minx+maxx)/2,(miny+maxy)/2);}else{px=zoomPx;cam.x=lerp(cam.x,g.x,.14);cam.y=lerp(cam.y,g.y,.14);}drawGround();renderRoad();drawBike();if($('showTrace').checked)drawLegend();}
+function showReplayAt(time){
+ if(!replayFrames.length)return;
+ let previousTime=replayTime;replayTime=clamp(time,0,replayFrames.at(-1).elapsed);
+ if(replayPlaying&&replayTime>=previousTime&&replayTime-previousTime<.3){for(let i=0;i<rideEvents.length;i++){let e=rideEvents[i];if(e.type==='penalty'&&e.time>previousTime&&e.time<=replayTime&&i!==replayLastPenalty){replayLastPenalty=i;penaltyBeep();toast('다시보기 · '+e.message+' · -'+(e.points||10)+'점');}}}
+ let lo=0,hi=replayFrames.length-1;
+ while(lo<hi){let mid=(lo+hi+1)>>1;if(replayFrames[mid].elapsed<=replayTime)lo=mid;else hi=mid-1;}
+ g={...replayFrames[lo],state:'replay'};
+ $('replaySeek').value=replayFrames.at(-1).elapsed?Math.round(1000*replayTime/replayFrames.at(-1).elapsed):0;
+ $('replayTime').textContent=clock(replayTime)+' / '+clock(replayFrames.at(-1).elapsed);
+ $('speed').innerHTML=(g.speed*3.6).toFixed(1)+' <small>km/h</small>'; $('timer').textContent=clock(replayTime)+' · 기록 재생';refreshBalance();
+}
+function startReplay(view){if(replayFrames.length<1){toast('다시 볼 주행 기록이 없어요');return;}
+ $('endOverlay').hidden=true;$('overlay').classList.add('hidden');$('app').classList.add('replaying');$('replayBar').hidden=false;
+ setCamera(view||'first');$('replayView').value=cameraMode;cam=P(replayFrames[0].x,replayFrames[0].y);
+ replayTime=0;replayLastPenalty=-1;replayPlaying=true;replayRate=1;$('replaySlow').textContent='재생 1×';$('replayPlay').textContent='Ⅱ 일시정지';showReplayAt(0);syncDock();resize();}
+function exitReplay(){replayPlaying=false;$('replayBar').hidden=true;$('app').classList.remove('replaying');if(finishedRide){showReplayAt(replayFrames.at(-1).elapsed);g.state='ended';$('endOverlay').hidden=false;}else{g.state='paused';}$('pauseBtn').textContent='계속하기';resize();}
+function prepareDemoPath(){
+ demoPath=(guidePath.length?guidePath:course).map(p=>P(p.x,p.y));demoCum=[0];
+ for(let i=1;i<demoPath.length;i++)demoCum.push(demoCum.at(-1)+dist(demoPath[i-1],demoPath[i]));
+ demoTotal=Math.max(.01,demoCum.at(-1));
+}
+function demoPoseAt(d){
+ d=clamp(d,0,demoTotal);let lo=0,hi=demoCum.length-1;
+ while(lo+1<hi){let m=(lo+hi)>>1;if(demoCum[m]<=d)lo=m;else hi=m;}
+ let a=demoPath[lo],b=demoPath[lo+1]||a,t=(d-demoCum[lo])/(demoCum[lo+1]-demoCum[lo]||1);
+ return{x:lerp(a.x,b.x,t),y:lerp(a.y,b.y,t),heading:Math.atan2(b.y-a.y,b.x-a.x)};
+}
+function angleDelta(a,b){let d=a-b;while(d>Math.PI)d-=TWO;while(d<-Math.PI)d+=TWO;return d;}
+function startDemo(){
+ if(demoBackup){exitDemo();return;}
+ demoBackup={g:{...g},cameraMode,preferredCamera,overview,traceF:[...traceF],traceR:[...traceR],overlayHidden:$('overlay').classList.contains('hidden'),title:$('title').textContent,status:$('status').textContent,hint:$('hintbar').textContent,timer:$('timer').textContent,speed:$('speed').innerHTML,progress:$('progress').style.width};
+ readPhysics();readBike();rebuild($('course').value);prepareDemoPath();releaseAll();demoProgress=0;demoTraceAt=0;traceF=[];traceR=[];
+ let p=demoPoseAt(0);g={...g,state:'demo',x:p.x,y:p.y,heading:p.heading,steer:0,steerVelocity:0,speed:0,yawRate:0,elapsed:0,penalty:0,progress:0,phi:0,rollRate:0,desiredLean:0,balance:'STABLE'};
+ $('overlay').classList.add('hidden');$('endOverlay').hidden=true;$('replayBar').hidden=true;$('app').classList.remove('replaying');$('app').classList.add('demoing');
+ preferredCamera='sky';setCamera('sky');overview=true;cam=P(g.x,g.y);$('demoBtn').classList.add('on');$('demoBtn').textContent='연습으로';$('demoBtn').setAttribute('aria-pressed','true');
+ $('pauseBtn').disabled=true;$('resetBtn').disabled=true;$('menuBtn').disabled=true;$('title').textContent='모범 예시 · '+SPECS[courseId].name;$('status').textContent='자동 참고선 · 조향 시점과 바퀴 궤적 확인';$('hintbar').textContent='참고용 예시이며 실제 합격선이나 유일한 정답이 아닙니다. 위의 ‘연습으로’를 누르면 돌아갑니다.';refreshBalance();
+}
+function updateDemo(dt){
+ let v=(courseId==='narrow'?5.2:6)/3.6;demoProgress+=dt*v;
+ if(demoProgress>demoTotal+v*1.15){demoProgress=0;demoTraceAt=0;traceF=[];traceR=[];}
+ let d=Math.min(demoProgress,demoTotal),p=demoPoseAt(d),before=demoPoseAt(Math.max(0,d-.28)),after=demoPoseAt(Math.min(demoTotal,d+.28));
+ let curvature=angleDelta(after.heading,before.heading)/Math.max(.18,Math.min(demoTotal,d+.28)-Math.max(0,d-.28));
+ let narrowCorrection=courseId==='narrow'?Math.sin(d*2.7)*1.5*rad:0;
+ g.x=p.x;g.y=p.y;g.heading=p.heading;g.speed=demoProgress<=demoTotal?v:0;g.yawRate=v*curvature;g.steer=clamp(Math.atan(bike.wheelbase*curvature)+narrowCorrection,-bike.steer*rad,bike.steer*rad);g.desiredLean=Math.atan2(v*v*curvature,9.81);g.phi=g.desiredLean+(courseId==='narrow'?Math.sin(d*2.7+.45)*1.8*rad:0);g.rollRate=courseId==='narrow'?Math.cos(d*2.7+.45)*1.8*rad*2.7*v:0;g.elapsed+=dt;g.progress=total*d/demoTotal;
+ if(demoProgress<=demoTotal&&g.elapsed-demoTraceAt>.08){traceR.push(P(g.x,g.y));traceF.push(pointAhead(bike.wheelbase));demoTraceAt=g.elapsed;}
+ $('speed').innerHTML=(g.speed*3.6).toFixed(1)+' <small>km/h</small>';$('timer').textContent='예시 · 반복 재생';$('progress').style.width=(100*d/demoTotal).toFixed(1)+'%';refreshBalance();
+}
+function exitDemo(){
+ if(!demoBackup)return;let b=demoBackup;demoBackup=null;$('app').classList.remove('demoing');$('demoBtn').classList.remove('on');$('demoBtn').textContent='예시 ▶';$('demoBtn').setAttribute('aria-pressed','false');$('pauseBtn').disabled=false;$('resetBtn').disabled=false;$('menuBtn').disabled=false;
+ g={...b.g};if(g.state==='running'){g.state='paused';$('pauseBtn').textContent='계속하기';}cameraMode=b.cameraMode;preferredCamera=b.preferredCamera;setCamera(cameraMode);overview=b.overview;traceF=b.traceF;traceR=b.traceR;$('title').textContent=b.title;$('status').textContent=b.status;$('hintbar').textContent=b.hint;$('timer').textContent=b.timer;$('speed').innerHTML=b.speed;$('progress').style.width=b.progress;if(!b.overlayHidden)$('overlay').classList.remove('hidden');refreshBalance();resize();
+}
+let lastFrame=0;function frame(t){let dt=lastFrame?clamp((t-lastFrame)/1000,0,.06):0;lastFrame=t;
+ if(g.state==='replay'&&replayPlaying){showReplayAt(replayTime+dt*replayRate);if(replayTime>=replayFrames.at(-1).elapsed){replayPlaying=false;$('replayPlay').textContent='▶ 다시 재생';}}
+ else if(g.state==='demo')updateDemo(dt*simTimeScale);
+ else tick(dt*simTimeScale);render();requestAnimationFrame(frame)}
+function hold(id){let el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();if(g.state!=='running')return;try{el.setPointerCapture(e.pointerId)}catch(_err){}held[id]=true;el.classList.add('on')});const end=e=>{if(e)e.preventDefault();held[id]=false;el.classList.remove('on')};['pointerup','pointercancel','lostpointercapture'].forEach(type=>el.addEventListener(type,end));}
+['left','right','gas','brake','bodyLeft','bodyRight'].forEach(hold);
+const posture={kneeLeft:false,kneeRight:false,hip:0};
+function figRefresh(){
+ const left=posture.kneeLeft, right=posture.kneeRight, hip=posture.hip;
+ $('figureLegLeft').setAttribute('d',left?'M 70 123 Q 47 138 40 171':'M 70 123 Q 61 148 59 171');
+ $('figureLegRight').setAttribute('d',right?'M 90 123 Q 113 138 120 171':'M 90 123 Q 99 148 101 171');
+ $('figurePelvis').setAttribute('transform','translate('+(hip*11)+' 0)');
+ $('figureKneeLeft').setAttribute('cx',left?'48':'55');$('figureKneeLeft').setAttribute('fill',left?'#b9ef78':'#6e899b');
+ $('figureKneeRight').setAttribute('cx',right?'112':'105');$('figureKneeRight').setAttribute('fill',right?'#b9ef78':'#6e899b');
+ $('figureHipLeft').setAttribute('fill',hip===-1?'#b9ef78':'#6e899b');
+ $('figureHipRight').setAttribute('fill',hip===1?'#b9ef78':'#6e899b');
+ $('poseStatus').textContent=(hip===-1?'엉덩이 왼쪽':hip===1?'엉덩이 오른쪽':'엉덩이 중앙')+' · 무릎 '+(left&&right?'양쪽 벌림':left?'왼쪽 벌림':right?'오른쪽 벌림':'중립');
+ for(let id of ['kneeLeft','kneeRight','hipLeft','hipRight','hipCenter']){
+   let active=id==='kneeLeft'?left:id==='kneeRight'?right:id==='hipLeft'?hip===-1:id==='hipRight'?hip===1:hip===0;
+   for(let suffix of ['','Menu']){let btn=$(id+suffix);if(btn){btn.classList.toggle('on',active);btn.setAttribute('aria-pressed',String(active));}}
+ }
+ $('postureSummary').textContent=(left||right||hip)?'조절 중':'중립';
+}
+function applyPosture(id){
+ if(id.startsWith('knee')){$('enableKnee').checked=true;if(id==='kneeLeft')posture.kneeLeft=!posture.kneeLeft;else posture.kneeRight=!posture.kneeRight;}
+ else{$('enableHip').checked=true;let side=id==='hipLeft'?-1:id==='hipRight'?1:0;posture.hip=posture.hip===side&&side?0:side;}
+ g.kneeLeftActive=posture.kneeLeft;g.kneeRightActive=posture.kneeRight;g.hipSide=posture.hip;
+ syncPostureControls();
+}
+function syncPostureControls(){
+ const knee=$('enableKnee').checked,hip=$('enableHip').checked;
+ if(!knee){posture.kneeLeft=false;posture.kneeRight=false;}
+ if(!hip)posture.hip=0;
+ g.kneeLeftActive=posture.kneeLeft;g.kneeRightActive=posture.kneeRight;g.hipSide=posture.hip;
+ $('postureToggle').hidden=false;
+ $('posturebar').hidden=!postureExpanded;
+ $('kneeGroup').hidden=!knee;$('hipGroup').hidden=!hip;
+ figRefresh();syncDock();
+}
+let postureExpanded=false;
+$('postureToggle').onclick=()=>{postureExpanded=!postureExpanded;$('postureToggle').setAttribute('aria-expanded',String(postureExpanded));syncPostureControls();};
+['kneeLeft','kneeRight','hipLeft','hipRight','hipCenter'].forEach(id=>{
+ for(let suffix of ['','Menu']){let btn=$(id+suffix);if(btn)btn.onclick=()=>applyPosture(id);}
+});
+$('enableKnee').onchange=syncPostureControls;$('enableHip').onchange=syncPostureControls;
+let keyMap={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'gas',ArrowDown:'brake',' ':'brake'};window.addEventListener('keydown',e=>{let k=keyMap[e.key];if(k&&g.state==='running'){e.preventDefault();held[k]=true;$(k).classList.add('on')}});window.addEventListener('keyup',e=>{let k=keyMap[e.key];if(k){e.preventDefault();held[k]=false;$(k).classList.remove('on')}});window.addEventListener('blur',releaseAll);document.addEventListener('pointerdown',()=>{unlockAudio()},{passive:true});document.addEventListener('touchend',()=>{unlockAudio()},{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden&&g.state==='running'){$('pauseBtn').click();}});
+$('foot').addEventListener('click',()=>{if(g.state!=='running')return;if(g.footed){g.footed=false;toast('발 지지 해제 · 천천히 출발');return;}if(g.speed*3.6>3){toast('시뮬레이터: 먼저 3 km/h 이하로 감속');return;}g.footed=true;g.footCount++;g.speed=0;g.yawRate=0;g.phi=0;g.rollRate=0;g.steerVelocity=0;releaseAll();rideEvents.push({time:g.elapsed,type:'penalty',points:10,message:'발 지지'});penaltyBeep();toast('발 지지 · -10점');refreshBalance();});
+$('gas').addEventListener('pointerdown',()=>{if(g.footed){g.footed=false;toast('발 지지 해제 · 출발');}});
+function setZoom(v){zoomPx=clamp(v,26,150);$('zoom').value=zoomPx;$('zoomTxt').textContent=zoomPx+' px/m';}
+$('zoomIn').onclick=()=>setZoom(zoomPx+8);$('zoomOut').onclick=()=>setZoom(zoomPx-8);
+$('zoom').oninput=()=>{zoomPx=Number($('zoom').value);$('zoomTxt').textContent=zoomPx+' px/m';};
+$('pathBias').oninput=()=>{$('pathTxt').textContent=Number($('pathBias').value).toFixed(2)+' m';physical.pathBias=Number($('pathBias').value);if(course.length)buildGuide();else updateGuideInfo();};
+$('viewRotation').onchange=()=>{viewRotation=Number($('viewRotation').value)*rad;};
+const VIEWS=['first','sky','left','right'];
+const VIEW_LABEL={first:'1인칭',sky:'스카이뷰',left:'왼쪽 측면',right:'오른쪽 측면'};
+function setCamera(m){
+ cameraMode=VIEWS.includes(m)?m:'first';overview=false;
+ $('cameraMode').value=cameraMode;
+ $('replayView').value=cameraMode;
+ $('povBtn').textContent='시점 · '+VIEW_LABEL[cameraMode];
+ $('viewBtn').textContent=cameraMode==='sky'?'1인칭':'스카이뷰';
+ $('zoomIn').disabled=cameraMode!=='sky';$('zoomOut').disabled=cameraMode!=='sky';
+ $('sim').setAttribute('aria-label','가상 연습 시점 '+VIEW_LABEL[cameraMode]);
+}
+$('cameraMode').onchange=()=>{preferredCamera=$('cameraMode').value;setCamera(preferredCamera);};
+$('povBtn').onclick=()=>{preferredCamera=VIEWS[(VIEWS.indexOf(cameraMode)+1)%VIEWS.length];setCamera(preferredCamera);};
+$('replayView').onchange=()=>setCamera($('replayView').value);
+document.querySelectorAll('[data-replay-view]').forEach(b=>b.onclick=()=>startReplay(b.dataset.replayView));
+$('tempo').onchange=()=>{simTimeScale=Number($('tempo').value);};
+$('entryDirection').onchange=()=>{readPhysics();rebuild($('course').value);if(g.state==='menu'){let p=poseAt(0);Object.assign(g,{x:p.x,y:p.y,heading:p.heading});cam=P(g.x,g.y);}};
+$('balanceMode').onchange=()=>{$('modeNote').textContent={stable:'Stable: 큰 가상 균형 보조. 조향·몸 이동의 영향은 남아 있습니다.',semi:'Semi-stable: 제한된 가상 균형 보조. 몸 이동과 조향이 기울기에 영향을 줍니다.',unstable:'Unstable: 거의 보조 없음. 쉽게 가상 전도가 발생할 수 있는 교육용 실험입니다.'}[$('balanceMode').value];physical.mode=$('balanceMode').value;};
+$('course').addEventListener('change',()=>{restoreFields();$('corner').hidden=$('course').value!=='bend';});$('model').addEventListener('change',()=>{modelId=$('model').value;restoreFields();});$('restore').addEventListener('click',restoreFields);document.querySelectorAll('.speedpick').forEach(b=>b.addEventListener('click',()=>{modeSpeed=Number(b.dataset.speed);document.querySelectorAll('.speedpick').forEach(q=>q.classList.toggle('selected',q===b));updateSpecs();}));
+$('start').onclick=()=>restart(false);$('corner').onclick=()=>restart(true);$('demoBtn').onclick=startDemo;$('viewBtn').onclick=()=>{if(g.state==='demo'){if(cameraMode==='sky'&&overview){setCamera('first');overview=false}else{setCamera('sky');overview=true}$('viewBtn').textContent=cameraMode==='sky'?'1인칭':'코스지도';return;}preferredCamera=cameraMode==='sky'?'first':'sky';setCamera(preferredCamera);};$('pauseBtn').onclick=()=>{if(g.state==='running'){g.state='paused';releaseAll();$('pauseBtn').textContent='계속하기';toast('일시정지')}else if(g.state==='paused'){g.state='running';$('pauseBtn').textContent='일시정지';lastFrame=performance.now();}};$('resetBtn').onclick=()=>restart(false);$('menuBtn').onclick=()=>showModal('코스 · 속도 · 모델 설정','수치를 바꾸면 다음 연습 시작 때부터 반영됩니다. 현재 진행 중인 기록은 재시작됩니다.');
+$('watchReplay').onclick=()=>startReplay('first');
+$('retryRun').onclick=()=>restart(false);
+$('endSettings').onclick=()=>showModal('다음 연습 설정','같은 코스를 다시 하거나 다른 옵션을 선택할 수 있어요.');
+$('replayPlay').onclick=()=>{if(replayTime>=replayFrames.at(-1).elapsed)showReplayAt(0);replayPlaying=!replayPlaying;$('replayPlay').textContent=replayPlaying?'Ⅱ 일시정지':'▶ 재생';};
+$('replaySlow').onclick=()=>{replayRate=replayRate===1?.5:replayRate===.5?.25:1;$('replaySlow').textContent='재생 '+replayRate+'×';};
+$('replaySeek').oninput=()=>{replayPlaying=false;$('replayPlay').textContent='▶ 재생';showReplayAt(Number($('replaySeek').value)/1000*replayFrames.at(-1).elapsed);};
+$('replayExit').onclick=exitReplay;$('replayRetry').onclick=()=>restart(false);
+new ResizeObserver(()=>{document.documentElement.style.setProperty('--replay-h',$('replayBar').getBoundingClientRect().height+'px');resize();}).observe($('replayBar'));
+function adaptEmbed(){let vh=window.visualViewport?.height||window.innerHeight;document.documentElement.style.setProperty('--usable-h',Math.max(210,vh)+'px');document.documentElement.classList.toggle('tinyEmbed',vh<520);resize();}
+if(window.visualViewport){window.visualViewport.addEventListener('resize',adaptEmbed);window.visualViewport.addEventListener('scroll',adaptEmbed);}
+window.addEventListener('resize',adaptEmbed);window.addEventListener('orientationchange',resize);document.addEventListener('contextmenu',e=>e.preventDefault());restoreFields();readPhysics();rebuild('bend');let st=poseAt(0);Object.assign(g,{x:st.x,y:st.y,heading:st.heading});cam=P(g.x,g.y);refreshBalance();syncPostureControls();setCamera('first');adaptEmbed();requestAnimationFrame(frame);
+// Small exposed read-only snapshot for deterministic browser checks; no external code or network required.
+Object.defineProperty(window,'simulatorDiagnostics',{get:()=>({model:modelId,course:courseId,trackWidth,wheelbase:bike.wheelbase,vehicleWidth:bike.width,frontWheelDiameter:bike.frontDia,rearWheelDiameter:bike.rearDia,courseLength:total,cones:cones.length,speedMode:modeSpeed,timeScale:simTimeScale,state:g.state,position:{x:g.x,y:g.y},speedKmh:g.speed*3.6,zoomPx,rollDeg:g.phi/rad,rollRateDeg:g.rollRate/rad,desiredLeanDeg:g.desiredLean/rad,balance:g.balance,mode:physical.mode,riderMass:physical.rider,riderHeight:physical.riderHeight,totalMass:physical.total,centerHeight:physical.h,footCount:g.footCount,yawRateDeg:g.yawRate/rad,yawTau:physical.yawTau,steerDeg:g.steer/rad,steerRateLimit:physical.rate,guideBias:physical.pathBias,startMode:$('startMode').value,entryDirection:$('entryDirection').value,viewRotationDeg:Math.round(viewRotation/rad),hipEnabled:$('enableHip').checked,kneeEnabled:$('enableKnee').checked,hipSide:g.hipSide,kneeLeftActive:g.kneeLeftActive,kneeRightActive:g.kneeRightActive,hipShift:g.hipShift,kneeShift:g.kneeShift,dockHeight:$('controls').getBoundingClientRect().height,canvasBounds:cv.getBoundingClientRect().toJSON(),guideFirst:guidePath[0],guideMid:guidePath[Math.floor(guidePath.length/2)],guideMinRadius:bike.wheelbase/Math.tan(bike.steer*rad),guideSafetyMargin:guideValidation.minMargin,guideRearMargin:guideValidation.rearMargin,guideFrontMargin:guideValidation.frontMargin,guideAdjusted:guideValidation.adjusted,rideEvents:rideEvents.length,traceSamples:traceR.length,cameraMode,overview,yawTauActive:g.yawTauActive??physical.yawTau,steerReleaseSeconds:Math.abs(g.steer/rad)/physical.rate,headingDeg:g.heading/rad,availableViews:VIEWS,cameraDefault:'first',preferredCamera,replayFrames:replayFrames.length,replayTime,replayPlaying,ending:!$('endOverlay').hidden,viewport:{width:W,height:H,usableHeight:$('app').getBoundingClientRect().height}})});
+})();
+</script></body></html>
